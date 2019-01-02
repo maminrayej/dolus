@@ -33,7 +33,7 @@ public class QueryRecord<K,V> {
      */
     public QueryRecord(){
 
-        this(null);
+        this(null, null);
     }
 
     /**
@@ -41,9 +41,10 @@ public class QueryRecord<K,V> {
      * @param previous query record which was active before current query
      * @since 1.0
      */
-    public QueryRecord(QueryRecord<K,V> previous){
+    public QueryRecord(QueryRecord<K,V> previous, Map<K,V> symbolTable){
 
         this.previous = previous;
+        this.symbolTable = symbolTable;
     }
 
     /**
@@ -85,6 +86,7 @@ public class QueryRecord<K,V> {
     /**
      * Get the symbol table of the current query
      * @return symbol table of the current query
+     * @since 1.0
      */
     public Map<K, V> getSymbolTable() {
         return symbolTable;
@@ -93,6 +95,7 @@ public class QueryRecord<K,V> {
     /**
      * Initializes the symbol table of the query record
      * @param symbolTable symbol table of the query record
+     * @since 1.0
      */
     public void setSymbolTable(Map<K,V> symbolTable){
         this.symbolTable = symbolTable;
