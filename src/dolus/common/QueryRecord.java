@@ -81,4 +81,20 @@ public class QueryRecord<K,V> {
     public QueryRecord getPrevious(){
         return this.previous;
     }
+
+    /**
+     * Get the symbol table of the current query
+     * @return symbol table of the current query
+     */
+    public Map<K, V> getSymbolTable() {
+        return symbolTable;
+    }
+
+    /**
+     * Initializes the symbol table of the query record
+     * @param symbolTable symbol table of the query record
+     */
+    public void setSymbolTable(Map<K,V> symbolTable){
+        this.symbolTable = symbolTable;
+    }
 }
