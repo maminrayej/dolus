@@ -1,90 +1,76 @@
 package dolus.common;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Query Record contains information about tables names and nicknames associated with the current active query.
+ * Query Record contains information about symbols associated with the current active query.
  * <p>
- *     Query Record instances store table nicknames as keys and table names as values.
- *     Record can be queried for a table name providing the table nickname.
+ *     Query Record instances store query symbols in a key value structure.
+ *     Record can be queried for a value providing the key.
+ *     Record is linked to the previous active record.
  * </p>
  *
  * @author m.amin rayej
  * @version 1.0
  * @since 1.0
  */
-public class QueryRecord {
+public class QueryRecord<K,V> {
 
     /**
      * Contains a reference to the previous active query which current query is embedded in
      */
-    private QueryRecord parent;
+    private QueryRecord<K,V> previous;
 
     /**
-     * Stores the (table nickname => table name) mapping
+     * Stores query symbol mappings
      */
-    private HashMap<String,String> nicknameToName;
+    private Map<K,V> symbolTable;
 
-    /**
-     * Represents the depth of current query in the query activation tree
-     */
-    private int depth;
 
     /**
      * Query Record default constructor.
-     * Use this to construct the root node in query activation tree
      * @since 1.0
      */
     public QueryRecord(){
 
-        this(null, 0);
+        this(null);
     }
 
     /**
-     * This Constructor is used to construct non-root nodes in the query activation tree
      *
-     * @param parent query record which was active before current query
-     * @param depth  depth of the current query in query activation tree
+     * @param previous query record which was active before current query
      * @since 1.0
      */
-    public QueryRecord(QueryRecord parent, int depth){
+    public QueryRecord(QueryRecord<K,V> previous){
 
-        this.depth = depth;
-        this.parent = parent;
-
-        //initialize the mapping structure
-        this.nicknameToName = new HashMap<>();
+        this.previous = previous;
     }
 
     /**
-     * Searches for the table name associated with nickname parameter in mapping structure
-     * @param nickname nickname of the table
-     * @return table name if available otherwise null
+     * Searches for the value associated with key parameter in mapping structure
+     * @param key key of the symbol table
+     * @return value if available otherwise null
+     * @throws IllegalStateException if the symbol table is not initialized
      * @since 1.0
      */
-    public String findTableName(String nickname){
+    public V findValue(K key) throws IllegalStateException{
 
-        return nicknameToName.getOrDefault(nickname, null);
+        if (symbolTable == null)
+            throw new IllegalStateException("Symbol table is not initialized");
+
+        return symbolTable.get(key);
     }
 
     /**
-     * Add a new entry to the mapping table of the current query
-     * @param tableName value of the entry
-     * @param tableNickname key of the entry
+     * Add a new entry to the symbol table of the current query.
+     * If symbol table already has the key, old value will be replaced by new value
+     * @param value value of the entry
+     * @param key key of the entry
      * @since 1.0
      */
-    public void addMapping(String tableName, String tableNickname){
+    public void addSymbol(K key, V value){
 
-        nicknameToName.put(tableNickname, tableName);
-    }
-
-    /**
-     * Get the depth of the current query in query activation tree
-     * @return depth of the current active query
-     * @since 1.0
-     */
-    public int getDepth(){
-        return this.depth;
+        symbolTable.put(key, value);
     }
 
     /**
@@ -92,7 +78,7 @@ public class QueryRecord {
      * @return previous active query record
      * @since 1.0
      */
-    public QueryRecord getParent(){
-        return this.parent;
+    public QueryRecord getPrevious(){
+        return this.previous;
     }
 }
