@@ -92,12 +92,4 @@ public class QueryRecord<K,V> {
         return symbolTable;
     }
 
-    /**
-     * Initializes the symbol table of the query record
-     * @param symbolTable symbol table of the query record
-     * @since 1.0
-     */
-    public void setSymbolTable(Map<K,V> symbolTable){
-        this.symbolTable = symbolTable;
-    }
 }
