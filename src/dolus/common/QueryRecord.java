@@ -83,13 +83,4 @@ public class QueryRecord<K,V> {
         return this.previous;
     }
 
-    /**
-     * Get the symbol table of the current query
-     * @return symbol table of the current query
-     * @since 1.0
-     */
-    public Map<K, V> getSymbolTable() {
-        return symbolTable;
-    }
-
 }
