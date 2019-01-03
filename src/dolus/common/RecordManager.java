@@ -27,10 +27,9 @@ public interface RecordManager<K, V, T extends QueryRecord<K,V>> {
 
     /**
      * Adds a new record to the Record Manager
-     * @param record record to be inserted
      * @since 1.0
      */
-    void addRecord(T record);
+    void addRecord();
 
     /**
      * Add a new symbol to the symbol table of the current active record
