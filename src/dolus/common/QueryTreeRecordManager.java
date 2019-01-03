@@ -7,7 +7,7 @@ package dolus.common;
  * @version 1.0
  * @since 1.0
  */
-public class QueryTreeRecordManager extends QueryRecordManager {
+public class QueryTreeRecordManager implements RecordManager<QueryTreeRecord> {
 
     @Override
     public String findTableName(String nickname) {
@@ -15,7 +15,7 @@ public class QueryTreeRecordManager extends QueryRecordManager {
     }
 
     @Override
-    public void addRecord(QueryRecord record) {
+    public void addRecord(QueryTreeRecord record) {
 
     }
 }
