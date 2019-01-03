@@ -54,7 +54,7 @@ public class QueryRecord<K,V> {
      * @throws IllegalStateException if the symbol table is not initialized
      * @since 1.0
      */
-    public V findValue(K key) throws IllegalStateException{
+    public V findValue(K key){
 
         if (symbolTable == null)
             throw new IllegalStateException("Symbol table is not initialized");
