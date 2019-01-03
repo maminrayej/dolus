@@ -7,10 +7,10 @@ package dolus.common;
  * @version 1.0
  * @since 1.0
  */
-public class QueryTreeRecordManager implements RecordManager<QueryTreeRecord> {
+public class QueryTreeRecordManager implements RecordManager<String, String, QueryTreeRecord<String,String>> {
 
     @Override
-    public String findTableName(String nickname) {
+    public String findSymbol(String key) {
         return null;
     }
 
