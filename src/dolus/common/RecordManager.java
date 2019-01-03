@@ -30,6 +30,15 @@ public interface RecordManager<K, V, T extends QueryRecord<K,V>> {
      * @param record record to be inserted
      * @since 1.0
      */
-    void   addRecord(T record);
+    void addRecord(T record);
+
+    /**
+     * Add a new symbol to the symbol table of the current active record
+     *
+     * @param key key of new entry
+     * @param value value of the new entry
+     * @since 1.0
+     */
+    void addSymbol(K key, V value);
 
 }
