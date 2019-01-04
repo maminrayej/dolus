@@ -17,11 +17,6 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
     private int depth;
 
     /**
-     * Each element indicates which child of the current record should be retrieved next.
-     */
-    private Stack<Integer> childAccessStack;
-
-    /**
      * Points to the root of the Query Activation Tree
      */
     private QueryTreeRecord<String,String> root;
@@ -38,10 +33,9 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
     public QueryTreeRecordManager(){
 
         this.depth = 0;
-        this.childAccessStack = new Stack<>();
-        this.childAccessStack.push(0);
 
         this.root = new QueryTreeRecord<>();
+
         this.current = this.root;
 
     }
@@ -81,7 +75,6 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
 
     }
 
-
     /**
      * Adds a new record to the query activation tree record.
      * @since 1.0
@@ -100,9 +93,6 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
 
         //update current depth of the record manager
         this.depth++;
-
-        //push an element for the created record
-        this.childAccessStack.push(0);
 
     }
 
@@ -134,8 +124,6 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
 
         this.depth--;
 
-        //pop the element from childAccessStack that monitors accessing to children of the record
-        this.childAccessStack.pop();
     }
 
     /**
@@ -146,21 +134,10 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
      */
     public void incrementDepth(){
 
-        //get child number of the current record which should be activated
-        int currentChild = this.childAccessStack.pop();
-
-        this.current = this.current.getChild(currentChild);
+        this.current = this.current.getChild();
 
         //update the depth value
         this.depth++;
-
-        //point to the next child for next retrieval
-        currentChild++;
-
-        this.childAccessStack.push(currentChild);
-
-        //push an element to start monitoring accessing children of the new current record
-        this.childAccessStack.push(0);
 
     }
 }
