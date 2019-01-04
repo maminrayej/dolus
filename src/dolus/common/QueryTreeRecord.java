@@ -1,9 +1,7 @@
 package dolus.common;
 
-
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.LinkedList;
 
 /**
  * QueryTreeRecord nodes act as a tree node.
@@ -18,9 +16,9 @@ import java.util.List;
 public class QueryTreeRecord<K,V> extends QueryRecord<K,V> {
 
     /**
-     * Contains the record of the queries nested in the current query
+     * Stores the record of the queries nested in the current query as FIFO queue
      */
-    private List<QueryTreeRecord<K,V>> children;
+    private LinkedList<QueryTreeRecord<K,V>> children;
 
     /**
      * Default constructor of the QueryTreeRecord.
@@ -42,7 +40,7 @@ public class QueryTreeRecord<K,V> extends QueryRecord<K,V> {
     public QueryTreeRecord(QueryTreeRecord<K,V> parent){
         super(parent, new HashMap<>());
 
-        this.children = new ArrayList<>();
+        this.children = new LinkedList<>();
     }
 
     /**
@@ -58,13 +56,12 @@ public class QueryTreeRecord<K,V> extends QueryRecord<K,V> {
     /**
      * Get record of a nested query in the current query
      *
-     * @param index position of the nested query in the Query Activation Tree
-     * @return record of the nested query in the position specified by index
-     * @throws IndexOutOfBoundsException if index < 0 or index >= size()
+     * @return next nested query in the children list
+     * @throws java.util.NoSuchElementException if list of children is empty
      * @since 1.0
      */
-    public QueryTreeRecord<K,V> getChild(int index){
-        return children.get(index);
+    public QueryTreeRecord<K,V> getChild(){
+        return children.remove();
     }
 
 }
