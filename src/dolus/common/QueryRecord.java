@@ -90,7 +90,7 @@ public class QueryRecord<K,V> {
     @Override
     public String toString(){
         return String.format("{previous: %s\n" +
-                             "symbols : %s}\n" , this.previous, this.symbolTable);
+                             "symbols : %s}" , this.previous, this.symbolTable);
     }
 
 }
