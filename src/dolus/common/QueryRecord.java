@@ -83,4 +83,14 @@ public class QueryRecord<K,V> {
         return this.previous;
     }
 
+    /**
+     * Displays an snapshot of the record current values
+     * @return string representation of the internal values of the record
+     */
+    @Override
+    public String toString(){
+        return String.format("{previous: %s\n" +
+                             "symbols : %s}\n" , this.previous, this.symbolTable);
+    }
+
 }
