@@ -143,6 +143,14 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
     }
 
     /**
+     * Resets the record pointer of the record manager and points it to the root of the activation tree
+     */
+    public void resetDepth(){
+        this.current = this.root;
+        this.depth = 0;
+    }
+
+    /**
      * Prints the Query Activation Tree row by row
      * @return an snapshot of the records being manage by the query manager
      */
