@@ -64,4 +64,11 @@ public class QueryTreeRecord<K,V> extends QueryRecord<K,V> {
         return children.remove();
     }
 
+
+    //////////////// DEBUGGING METHODS //////////////////////////////
+
+    public LinkedList<QueryTreeRecord<K,V>> getChildren(){
+        return children;
+    }
+
 }
