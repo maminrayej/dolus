@@ -1,5 +1,6 @@
 package dolus.common;
 
+import java.util.LinkedList;
 import java.util.Stack;
 
 /**
@@ -139,5 +140,37 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
         //update the depth value
         this.depth++;
 
+    }
+
+    /**
+     * Prints the Query Activation Tree row by row
+     * @return an snapshot of the records being manage by the query manager
+     */
+    @Override
+    public String toString(){
+
+        //building the snapshot requires lots of string concatenation thus using StringBuilder
+        StringBuilder snapshot = new StringBuilder();
+
+        //current node to be printed
+        QueryTreeRecord<String,String> current;
+
+        //fifo queue to keep track of nodes of the activation tree that are going to be printed out
+        LinkedList<QueryTreeRecord<String,String>> fifo = new LinkedList<>();
+
+        //add root of the query activation tree
+        fifo.add(this.root);
+
+        //print all nodes in BFS form until there are no other nodes to print
+        while(!fifo.isEmpty()){
+            current = fifo.remove();
+
+            snapshot.append(current.toString());
+
+
+            fifo.addAll(current.getChildren());
+        }
+
+        return snapshot.toString();
     }
 }
