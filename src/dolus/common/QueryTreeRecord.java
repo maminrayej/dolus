@@ -72,15 +72,4 @@ public class QueryTreeRecord<K,V> extends QueryRecord<K,V> {
         return children;
     }
 
-   /**
-    * Displays an snapshot of the record current values
-    *
-    * @return string representation of the internal values of the record
-    */
-    @Override
-    public String toString(){
-        return String.format("%s\n" +
-                             "{children: %s}", super.toString(), this.children);
-    }
-
 }
