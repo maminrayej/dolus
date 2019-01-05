@@ -28,16 +28,19 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
     private QueryTreeRecord<String,String> current;
 
     /**
+     * Keeps track whether the inserted record is the first record or not
+     */
+    private boolean firstRecord;
+
+    /**
      * QueryTreeRecordManager default constructor.
-     * It sets the current depth to zero and initializes the root and current record in the tree.
+     * It sets the current depth to zero and initializes the internal variables of record manager
      */
     public QueryTreeRecordManager(){
 
         this.depth = 0;
 
-        this.root = new QueryTreeRecord<>();
-
-        this.current = this.root;
+        this.firstRecord = true;
 
     }
 
@@ -83,6 +86,18 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
     @Override
     public void addRecord() {
 
+        //if it's the first record initialize the query activation tree
+        if(this.firstRecord){
+
+            this.root = new QueryTreeRecord<>();
+
+            this.current = this.root;
+
+            this.firstRecord = false;
+
+            return;
+        }
+
         //create a new record and set its parent to the current record
         QueryTreeRecord<String,String> record = new QueryTreeRecord<>(this.current);
 
@@ -113,13 +128,12 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
     /**
      * Causes the record manager to activate the previous record
      *
-     * @throws IllegalStateException if current depth of the record manager is zero
      * @since 1.0
      */
     public void decrementDepth(){
 
         if (depth == 0)
-            throw new IllegalStateException("Depth can not be smaller than zero");
+            return;
 
         this.current = (QueryTreeRecord<String, String>) this.current.getPrevious();
 
@@ -174,6 +188,8 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
             current = fifo.remove();
 
             snapshot.append(current.toString());
+
+            snapshot.append("\n\n");
 
 
             fifo.addAll(current.getChildren());
