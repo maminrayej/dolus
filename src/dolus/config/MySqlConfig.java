@@ -6,6 +6,10 @@ import java.util.HashSet;
 
 /**
  * Contains information about MySQL database
+ *
+ * @author m.amin rayej
+ * @version 1.0
+ * @since 1.0
  */
 public class MySqlConfig {
 
@@ -98,6 +102,7 @@ public class MySqlConfig {
     /**
      *
      * @return host address of the database
+     * @since 1.0
      */
     public String getHost() {
         return host;
@@ -106,6 +111,7 @@ public class MySqlConfig {
     /**
      *
      * @return port of the database
+     * @since 1.0
      */
     public String getPort() {
         return port;
@@ -114,6 +120,7 @@ public class MySqlConfig {
     /**
      *
      * @return name of the database
+     * @since 1.0
      */
     public String getDatabase() {
         return database;
@@ -122,6 +129,7 @@ public class MySqlConfig {
     /**
      *
      * @return username credential
+     * @since 1.0
      */
     public String getUsername() {
         return username;
@@ -130,6 +138,7 @@ public class MySqlConfig {
     /**
      *
      * @return password credential
+     * @since 1.0
      */
     public String getPassword() {
         return password;
