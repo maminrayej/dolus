@@ -9,6 +9,8 @@ import org.json.simple.parser.ParseException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 /**
@@ -52,7 +54,7 @@ public class ConfigUtilities {
      * Reads content of the config file
      *
      * @param configFile configuration file
-     * @return contents of the
+     * @return contents of the config file
      * @throws FileNotFoundException if config file can not be located
      */
     private static String readConfigContents(File configFile) throws FileNotFoundException {
@@ -133,12 +135,87 @@ public class ConfigUtilities {
         return true;
     }
 
+    /**
+     * Parse MySQL configurations
+     *
+     * @param mySQLConfig object that contains sql configurations
+     * @return true if parsing was successful, false otherwise
+     */
     private static boolean parseMySQLConfig(JSONObject mySQLConfig) {
 
-        //add code here
-        return false;
+        //extract primary configurations
+        String host;
+        String port;
+        String database;
+
+        host = (String) mySQLConfig.get("host");
+        port = (String) mySQLConfig.get("port");
+        database = (String) mySQLConfig.get("database");
+
+        //check whether primary configs are defined well or not
+        if (host == null || host.length() == 0 ||
+                port == null || port.length() == 0 ||
+                database == null || database.length() == 0) {
+
+            System.out.println("Host, port or database is empty or not defined in MySQL config");
+
+            return false;
+        }
+
+        //extract secondary information
+
+        //extract tables
+        JSONArray tables = (JSONArray) mySQLConfig.get("tables");
+
+        if (tables == null){
+            System.out.println("No table defined in MySQL configuration");
+
+            return false;
+        }
+
+        //extract table information
+        HashMap<String,String[]> tableInfo = new HashMap<>();// table name -> (column1, column2, ...)
+        HashMap<String,String> primaryKeys = new HashMap<>();// table name -> primary key
+
+        String tableName;
+        String primaryKey;
+        JSONArray columns;
+        ArrayList<String> columnList = new ArrayList<>();
+
+        for (Object tableObject : tables){
+
+            JSONObject table = (JSONObject) tableObject;
+
+            tableName  = (String) table.get("name");
+            if (tableName == null || tableName.length() == 0) return false;
+
+            primaryKey = (String) table.get("pk");
+            if (primaryKey == null || primaryKey.length() == 0) return false;
+
+            columns    = (JSONArray) table.get("columns");
+            if (columns == null || columns.size() == 0) return false;
+
+            //extract columns of the current table
+            for (Object column : columns)
+                columnList.add((String) column);
+
+            String[] template = new String[0];//hints the column list to convert the list to a String array not Object
+            tableInfo.put(tableName, columnList.toArray(template));
+
+            primaryKeys.put(tableName, primaryKey);
+
+        }
+
+
+        return true;
     }
 
+    /**
+     * Parse MongoDB configurations
+     *
+     * @param mongoDBConfig object that contains mongoDB configurations
+     * @return true if parsing was successful, false otherwise
+     */
     private static boolean parseMongoDBConfig(JSONObject mongoDBConfig) {
 
         //add code here
