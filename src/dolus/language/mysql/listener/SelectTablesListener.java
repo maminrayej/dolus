@@ -2,7 +2,7 @@ package dolus.language.mysql.listener;
 
 import dolus.language.mysql.utilities.MySqlParser;
 import dolus.language.mysql.utilities.MySqlParserBaseListener;
-import dolus.common.QueryTreeRecordManager;
+import dolus.base.QueryTreeRecordManager;
 
 /**
  * This class listens and waits to encounter a "table_name alias" in select query.

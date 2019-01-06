@@ -1,4 +1,4 @@
-package dolus.common;
+package dolus.base;
 
 /**
  * Record Manager manages records in a data structure.

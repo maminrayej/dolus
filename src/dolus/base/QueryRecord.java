@@ -1,4 +1,4 @@
-package dolus.common;
+package dolus.base;
 
 import java.util.Map;
 

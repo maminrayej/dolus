@@ -1,7 +1,6 @@
-package dolus.common;
+package dolus.base;
 
 import java.util.LinkedList;
-import java.util.Stack;
 
 /**
  * Is a record manager that manages the query records as a tree named Query Activation Tree.
