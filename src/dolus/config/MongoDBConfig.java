@@ -45,6 +45,8 @@ public class MongoDBConfig {
      * @param host        host address
      * @param port        port number
      * @param database    database name
+     * @param username    username credentials
+     * @param password    password credentials
      * @since 1.0
      */
     public MongoDBConfig(HashSet<String> collections, String host, String port, String database, String username, String password) {

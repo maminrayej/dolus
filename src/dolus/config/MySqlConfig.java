@@ -50,6 +50,11 @@ public class MySqlConfig {
      *
      * @param tablesInfo information about tables of the database
      * @param primaryKeys mapping between table name and its primary key
+     * @param host        host address of database
+     * @param port        port number of database
+     * @param database    database name
+     * @param username    username credential
+     * @param password    password credential
      * @since 1.0
      */
     public MySqlConfig(HashMap<String, HashSet<String>> tablesInfo, HashMap<String,String> primaryKeys,
