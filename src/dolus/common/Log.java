@@ -40,11 +40,12 @@ public class Log {
     /**
      * Logs the message with specified type
      *
-     * @param msg  message to be logged
-     * @param type type of the log
+     * @param msg           message to be logged
+     * @param componentName name of the component the message belongs to
+     * @param type          type of the log
      * @since 1.0
      */
-    public static void log(String msg, int type) {
+    public static void log(String msg, String componentName, int type) {
 
         //point to the log file
         File logFile = new File(logDir);
@@ -80,7 +81,7 @@ public class Log {
         try {
             //create a file writer to write the message to log file
             FileWriter writer = new FileWriter(logFile);
-            writer.write(String.format("[%s][%s]%s", currentDateTime, typeStr, msg));
+            writer.write(String.format("[%s][%s][%s]%s", currentDateTime, typeStr, componentName, msg));
 
             //close the writer resource
             writer.close();
