@@ -8,7 +8,6 @@ import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
@@ -27,6 +26,8 @@ public class ConfigUtilities {
      */
     private static final String configDir = "/home/amin/programming/projects/java/Dolus/config.json";
 
+    private static final String componentName = "ConfigUtilities";
+
     /**
      * Structure that stores MySQL meta data and configurations
      */
@@ -40,23 +41,29 @@ public class ConfigUtilities {
     /**
      * Loads the config file and reads the contents.
      *
-     * @throws IOException if config can not be located or can not be read due to lack of permission
+     * @return true if loading configuration was successful, false otherwise
      * @since 1.0
      */
-    public void loadConfig() throws IOException {
+    public boolean loadConfig() {
 
         //open config file and check for reading permission
         File configFile = new File(configDir);
 
-        if (!configFile.exists())
-            throw new FileNotFoundException("Config file can not be located");
-        else if (!configFile.canRead())
-            throw new IOException("Does not have permission to read config file");
+        if (!configFile.exists()) {
+            Log.log("Config file can not be located", componentName, Log.ERROR);
+            return false;
+        } else if (!configFile.canRead()) {
+            Log.log("Dolus does not have permission to read the config file", componentName, Log.ERROR);
+            return false;
+        }
 
         //read contents of the config file
         String configContent = readConfigContents(configFile);
+        if (configContent == null)
+            return false;
 
         //parse config content and extract configurations
+        return parseConfigContent(configContent);
 
     }
 
@@ -64,20 +71,25 @@ public class ConfigUtilities {
      * Reads content of the config file
      *
      * @param configFile configuration file
-     * @return contents of the config file
-     * @throws FileNotFoundException if config file can not be located
+     * @return contents of the config file or null if an error occurs
      * @since 1.0
      */
-    private String readConfigContents(File configFile) throws FileNotFoundException {
+    private String readConfigContents(File configFile) {
 
-        Scanner scanner = new Scanner(configFile);
+        try {
 
-        StringBuilder content = new StringBuilder();
+            Scanner scanner = new Scanner(configFile);
 
-        while (scanner.hasNextLine())
-            content.append(scanner.nextLine());
+            StringBuilder content = new StringBuilder();
 
-        return content.toString();
+            while (scanner.hasNextLine())
+                content.append(scanner.nextLine());
+
+            return content.toString();
+        } catch (FileNotFoundException e) {
+            Log.log("Dolus can not open the config file", componentName, Log.ERROR);
+            return null;
+        }
 
     }
 
@@ -102,7 +114,7 @@ public class ConfigUtilities {
 
             //check that at least two vendors are defined
             if (vendors == null || vendors.size() < 2) {
-                Log.log("At least two vendor must be specified in config file", Log.ERROR);
+                Log.log("At least two vendor must be specified in config file", componentName, Log.ERROR);
                 return false;
             }
 
@@ -116,7 +128,7 @@ public class ConfigUtilities {
 
                 //check whether vendor name attribute is specified
                 if (vendorName == null || vendorName.length() == 0) {
-                    Log.log("Vendor name is not specified for one the vendors", Log.ERROR);
+                    Log.log("Vendor name is not specified for one the vendors", componentName, Log.ERROR);
                     return false;
                 }
 
@@ -133,7 +145,7 @@ public class ConfigUtilities {
             }
 
         } catch (ParseException e) {
-            Log.log("Could not parse the config file", Log.ERROR);
+            Log.log("Could not parse the config file", componentName, Log.ERROR);
             return false;
         }
 
@@ -164,38 +176,38 @@ public class ConfigUtilities {
         //configuration extraction
         host = (String) mySqlConfigObject.get("host");
         if (host == null || host.length() == 0) {
-            Log.log("MySQL host attribute is not defined", Log.ERROR);
+            Log.log("MySQL host attribute is not defined", componentName, Log.ERROR);
             return false;
         }
 
         port = (String) mySqlConfigObject.get("port");
         if (port == null || port.length() == 0 || !isInteger(port)) {
-            Log.log("MySQL port attribute is not defined or is not a valid integer number", Log.ERROR);
+            Log.log("MySQL port attribute is not defined or is not a valid integer number", componentName, Log.ERROR);
             return false;
         }
 
         database = (String) mySqlConfigObject.get("database");
         if (database == null || database.length() == 0) {
-            Log.log("MySQL database name attribute is not defined", Log.ERROR);
+            Log.log("MySQL database name attribute is not defined", componentName, Log.ERROR);
             return false;
         }
 
         username = (String) mySqlConfigObject.get("username");
         if (username == null || username.length() == 0) {
-            Log.log("MySQL username attribute is not defined", Log.ERROR);
+            Log.log("MySQL username attribute is not defined", componentName, Log.ERROR);
             return false;
         }
 
         password = (String) mySqlConfigObject.get("password");
         if (password == null || password.length() == 0) {
-            Log.log("MySQL password attribute is not defined", Log.ERROR);
+            Log.log("MySQL password attribute is not defined", componentName, Log.ERROR);
             return false;
         }
 
         //meta data extraction
         JSONArray tables = (JSONArray) mySqlConfigObject.get("tables");
         if (tables == null || tables.size() == 0) {
-            Log.log("MySQL tables attribute is not defined or it does not contain any tables", Log.ERROR);
+            Log.log("MySQL tables attribute is not defined or it does not contain any tables", componentName, Log.ERROR);
             return false;
         }
 
@@ -214,19 +226,19 @@ public class ConfigUtilities {
 
             tableName = (String) table.get("name");
             if (tableName == null || tableName.length() == 0) {
-                Log.log("MySQL table name attribute is not defined for one of its tables", Log.ERROR);
+                Log.log("MySQL table name attribute is not defined for one of its tables", componentName, Log.ERROR);
                 return false;
             }
 
             primaryKey = (String) table.get("pk");
             if (primaryKey == null || primaryKey.length() == 0) {
-                Log.log("MySQL primary key(pk) attribute is not defined for one of its tables", Log.ERROR);
+                Log.log("MySQL primary key(pk) attribute is not defined for one of its tables", componentName, Log.ERROR);
                 return false;
             }
 
             columns = (JSONArray) table.get("columns");
             if (columns == null || columns.size() == 0) {
-                Log.log("MySQL columns attribute is not defined for one of its table or the table does not contain any columns", Log.ERROR);
+                Log.log("MySQL columns attribute is not defined for one of its table or the table does not contain any columns", componentName, Log.ERROR);
                 return false;
             }
 
@@ -277,38 +289,38 @@ public class ConfigUtilities {
         //configuration extraction
         host = (String) mongoDBConfigObject.get("host");
         if (host == null || host.length() == 0) {
-            Log.log("MongoDB host attribute is not defined", Log.ERROR);
+            Log.log("MongoDB host attribute is not defined", componentName, Log.ERROR);
             return false;
         }
 
         port = (String) mongoDBConfigObject.get("port");
         if (port == null || port.length() == 0 || !isInteger(port)) {
-            Log.log("MongoDB port attribute is not defined or is not a valid integer number", Log.ERROR);
+            Log.log("MongoDB port attribute is not defined or is not a valid integer number", componentName, Log.ERROR);
             return false;
         }
 
         database = (String) mongoDBConfigObject.get("database");
         if (database == null || database.length() == 0) {
-            Log.log("MongoDB database name attribute is not defined", Log.ERROR);
+            Log.log("MongoDB database name attribute is not defined", componentName, Log.ERROR);
             return false;
         }
 
         username = (String) mongoDBConfigObject.get("username");
         if (username == null || username.length() == 0) {
-            Log.log("MongoDB username attribute is not defined", Log.ERROR);
+            Log.log("MongoDB username attribute is not defined", componentName, Log.ERROR);
             return false;
         }
 
         password = (String) mongoDBConfigObject.get("password");
         if (password == null || password.length() == 0) {
-            Log.log("MongoDB password attribute is not defined", Log.ERROR);
+            Log.log("MongoDB password attribute is not defined", componentName, Log.ERROR);
             return false;
         }
 
         //meta data extraction
         JSONArray collectionArray = (JSONArray) mongoDBConfigObject.get("collections");
         if (collectionArray == null || collectionArray.size() == 0) {
-            Log.log("MongoDB collections attribute is not defined or it does not contain any collection", Log.ERROR);
+            Log.log("MongoDB collections attribute is not defined or it does not contain any collection", componentName, Log.ERROR);
             return false;
         }
 
@@ -324,7 +336,7 @@ public class ConfigUtilities {
             collectionName = (String) collection.get("name");
 
             if (collectionName == null || collectionName.length() == 0) {
-                Log.log("MongoDB collection name attribute is not defined for one of its collections", Log.ERROR);
+                Log.log("MongoDB collection name attribute is not defined for one of its collections", componentName, Log.ERROR);
                 return false;
             }
 
