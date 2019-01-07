@@ -34,6 +34,8 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
     /**
      * QueryTreeRecordManager default constructor.
      * It sets the current depth to zero and initializes the internal variables of record manager
+     *
+     * @since 1.0
      */
     public QueryTreeRecordManager() {
 
@@ -159,6 +161,8 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
 
     /**
      * Resets the record pointer of the record manager and points it to the root of the activation tree
+     *
+     * @since 1.0
      */
     public void resetDepth() {
         this.current = this.root;
@@ -169,6 +173,7 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
      * Prints the Query Activation Tree row by row
      *
      * @return an snapshot of the records being manage by the query manager
+     * @since 1.0
      */
     @Override
     public String toString() {

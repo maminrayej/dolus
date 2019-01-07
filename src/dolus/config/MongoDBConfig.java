@@ -72,6 +72,8 @@ public class MongoDBConfig {
     }
 
     /**
+     * Host address of the database
+     *
      * @return host address of the database
      * @since 1.0
      */
@@ -80,6 +82,8 @@ public class MongoDBConfig {
     }
 
     /**
+     * Port number of the database
+     *
      * @return port of the database
      * @since 1.0
      */
@@ -88,6 +92,8 @@ public class MongoDBConfig {
     }
 
     /**
+     * Database name
+     *
      * @return name of the database
      * @since 1.0
      */
@@ -96,6 +102,8 @@ public class MongoDBConfig {
     }
 
     /**
+     * Username credential
+     *
      * @return username credential
      * @since 1.0
      */
@@ -104,6 +112,8 @@ public class MongoDBConfig {
     }
 
     /**
+     * Password credential
+     *
      * @return password credential
      * @since 1.0
      */

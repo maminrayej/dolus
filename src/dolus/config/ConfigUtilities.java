@@ -350,14 +350,20 @@ public class ConfigUtilities {
     }
 
     /**
+     * Get MySQL configuration and meta data container
+     *
      * @return MySqlConfig container that holds configuration and meta data about MySQL database
+     * @since 1.0
      */
     public MySqlConfig getMySqlConfig() {
         return mySqlConfig;
     }
 
     /**
+     * Get MongoDB configuration and meta data container
+     *
      * @return MongoDBConfig container that holds configuration and meta data about MongoDB database
+     * @since 1.0
      */
     public MongoDBConfig getMongoDBConfig() {
         return mongoDBConfig;

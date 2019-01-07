@@ -15,6 +15,11 @@ import java.util.HashSet;
 public class MySqlConfig {
 
     /**
+     * Component name of the logging system
+     */
+    private static final String componentName = "MySqlConfig";
+
+    /**
      * Contains information about each table
      */
     private HashMap<String, HashSet<String>> tablesInfo;
@@ -76,13 +81,13 @@ public class MySqlConfig {
      *
      * @param tableName  name of the table
      * @param columnName name of the column to search for
-     * @return true if table contains the specified column, false if table does not exist or colummn did not found
+     * @return true if table contains the specified column, false if table does not exist or column did not found
      * @since 1.0
      */
     public boolean containsColumn(String tableName, String columnName) {
 
         if (!tablesInfo.containsKey(tableName)) {
-            Log.log(String.format("Table %s is not defined in MySQL database", tableName), Log.ERROR);
+            Log.log(String.format("Table %s is not defined in MySQL database", tableName), componentName, Log.ERROR);
             return false;
         }
 
@@ -99,7 +104,7 @@ public class MySqlConfig {
     public String getPrimaryKey(String tableName) {
 
         if (!primaryKeys.containsKey(tableName)) {
-            Log.log(String.format("Table %s is not defined in MySQL database", tableName), Log.ERROR);
+            Log.log(String.format("Table %s is not defined in MySQL database", tableName), componentName, Log.ERROR);
             return null;
         }
 
@@ -107,6 +112,8 @@ public class MySqlConfig {
     }
 
     /**
+     * Host address of the database
+     *
      * @return host address of the database
      * @since 1.0
      */
@@ -115,6 +122,8 @@ public class MySqlConfig {
     }
 
     /**
+     * Port number of the database
+     *
      * @return port of the database
      * @since 1.0
      */
@@ -123,6 +132,8 @@ public class MySqlConfig {
     }
 
     /**
+     * Database name
+     *
      * @return name of the database
      * @since 1.0
      */
@@ -131,6 +142,8 @@ public class MySqlConfig {
     }
 
     /**
+     * Username credential
+     *
      * @return username credential
      * @since 1.0
      */
@@ -139,6 +152,8 @@ public class MySqlConfig {
     }
 
     /**
+     * Password credential
+     *
      * @return password credential
      * @since 1.0
      */

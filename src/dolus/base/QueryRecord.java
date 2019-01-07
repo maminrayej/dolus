@@ -91,6 +91,7 @@ public class QueryRecord<K, V> {
      * Displays an snapshot of the record current values
      *
      * @return string representation of the internal values of the record
+     * @since 1.0
      */
     @Override
     public String toString() {
