@@ -39,6 +39,7 @@ public class QueryRecord<K,V> {
     /**
      *
      * @param previous query record which was active before current query
+     * @param symbolTable mapping between a symbol and its value
      * @since 1.0
      */
     public QueryRecord(QueryRecord<K,V> previous, Map<K,V> symbolTable){
