@@ -13,12 +13,12 @@ import java.util.LinkedList;
  * @version 1.0
  * @since 1.0
  */
-public class QueryTreeRecord<K,V> extends QueryRecord<K,V> {
+public class QueryTreeRecord<K, V> extends QueryRecord<K, V> {
 
     /**
      * Stores the record of the queries nested in the current query as FIFO queue
      */
-    private LinkedList<QueryTreeRecord<K,V>> children;
+    private LinkedList<QueryTreeRecord<K, V>> children;
 
     /**
      * Default constructor of the QueryTreeRecord.
@@ -26,18 +26,18 @@ public class QueryTreeRecord<K,V> extends QueryRecord<K,V> {
      *
      * @since 1.0
      */
-    public QueryTreeRecord(){
+    public QueryTreeRecord() {
 
         this(null);
     }
 
     /**
      * It sets the parent of the current record and initializes the symbol table and children list
-     * @param parent previous active query.
      *
+     * @param parent previous active query.
      * @since 1.0
      */
-    public QueryTreeRecord(QueryTreeRecord<K,V> parent){
+    public QueryTreeRecord(QueryTreeRecord<K, V> parent) {
         super(parent, new HashMap<>());
 
         this.children = new LinkedList<>();
@@ -49,7 +49,7 @@ public class QueryTreeRecord<K,V> extends QueryRecord<K,V> {
      * @param child record of a query nested in the current query
      * @since 1.0
      */
-    public void addChild(QueryTreeRecord<K,V> child){
+    public void addChild(QueryTreeRecord<K, V> child) {
         children.add(child);
     }
 
@@ -60,15 +60,16 @@ public class QueryTreeRecord<K,V> extends QueryRecord<K,V> {
      * @throws java.util.NoSuchElementException if list of children is empty
      * @since 1.0
      */
-    public QueryTreeRecord<K,V> getChild(){
+    public QueryTreeRecord<K, V> getChild() {
         return children.remove();
     }
 
     /**
      * Get all children of the record
+     *
      * @return children of the record in Query Activation Tree
      */
-    public LinkedList<QueryTreeRecord<K,V>> getChildren(){
+    public LinkedList<QueryTreeRecord<K, V>> getChildren() {
         return children;
     }
 

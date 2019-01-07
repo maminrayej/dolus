@@ -1,8 +1,8 @@
 package dolus.language.mysql.listener;
 
+import dolus.base.QueryTreeRecordManager;
 import dolus.language.mysql.utilities.MySqlParser;
 import dolus.language.mysql.utilities.MySqlParserBaseListener;
-import dolus.base.QueryTreeRecordManager;
 
 /**
  * This class listens and waits to encounter a "table_name alias" in select query.
@@ -12,7 +12,7 @@ import dolus.base.QueryTreeRecordManager;
  * @version 1.0
  * @since 1.0
  */
-public class SelectTablesListener extends  MySqlParserBaseListener{
+public class SelectTablesListener extends MySqlParserBaseListener {
 
     /**
      * Record Manager manages the records during traversal of the parse tree
@@ -24,7 +24,7 @@ public class SelectTablesListener extends  MySqlParserBaseListener{
      *
      * @since 1.0
      */
-    public SelectTablesListener(){
+    public SelectTablesListener() {
 
         this.recordManager = new QueryTreeRecordManager();
 
@@ -66,10 +66,10 @@ public class SelectTablesListener extends  MySqlParserBaseListener{
 
         //extract the table name and its alias
         String tableName = ctx.tableName().getText();
-        String alias     = ctx.alias.getText();
+        String alias = ctx.alias.getText();
 
         //add the symbol to the active record symbol table
-        recordManager.addSymbol(alias,tableName);
+        recordManager.addSymbol(alias, tableName);
     }
 
     /**

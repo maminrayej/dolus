@@ -40,7 +40,7 @@ public class Log {
     /**
      * Logs the message with specified type
      *
-     * @param msg message to be logged
+     * @param msg  message to be logged
      * @param type type of the log
      * @since 1.0
      */
@@ -80,7 +80,7 @@ public class Log {
         try {
             //create a file writer to write the message to log file
             FileWriter writer = new FileWriter(logFile);
-            writer.write(String.format("[%s][%s]%s",currentDateTime, typeStr, msg));
+            writer.write(String.format("[%s][%s]%s", currentDateTime, typeStr, msg));
 
             //close the writer resource
             writer.close();

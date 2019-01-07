@@ -9,7 +9,7 @@ import java.util.LinkedList;
  * @version 1.0
  * @since 1.0
  */
-public class QueryTreeRecordManager implements RecordManager<String, String, QueryTreeRecord<String,String>> {
+public class QueryTreeRecordManager implements RecordManager<String, String, QueryTreeRecord<String, String>> {
 
     /**
      * Indicates at what depth in Query Activation Tree the record manager is
@@ -19,12 +19,12 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
     /**
      * Points to the root of the Query Activation Tree
      */
-    private QueryTreeRecord<String,String> root;
+    private QueryTreeRecord<String, String> root;
 
     /**
      * Points to the current active record
      */
-    private QueryTreeRecord<String,String> current;
+    private QueryTreeRecord<String, String> current;
 
     /**
      * Keeps track whether the inserted record is the first record or not
@@ -35,7 +35,7 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
      * QueryTreeRecordManager default constructor.
      * It sets the current depth to zero and initializes the internal variables of record manager
      */
-    public QueryTreeRecordManager(){
+    public QueryTreeRecordManager() {
 
         this.depth = 0;
 
@@ -59,11 +59,11 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
 
         if (value != null)
             return value;
-        else{
+        else {
 
-            QueryRecord<String,String> parent = current.getPrevious();
+            QueryRecord<String, String> parent = current.getPrevious();
 
-            while(parent != null){
+            while (parent != null) {
 
                 value = parent.findValue(key);
 
@@ -80,13 +80,14 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
 
     /**
      * Adds a new record to the query activation tree record.
+     *
      * @since 1.0
      */
     @Override
     public void addRecord() {
 
         //if it's the first record initialize the query activation tree
-        if(this.firstRecord){
+        if (this.firstRecord) {
 
             this.root = new QueryTreeRecord<>();
 
@@ -98,7 +99,7 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
         }
 
         //create a new record and set its parent to the current record
-        QueryTreeRecord<String,String> record = new QueryTreeRecord<>(this.current);
+        QueryTreeRecord<String, String> record = new QueryTreeRecord<>(this.current);
 
         //add created record as a child to the current record
         this.current.addChild(record);
@@ -113,14 +114,15 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
 
     /**
      * Add a new symbol to symbol table of the current record
-     * @param key key of new entry
+     *
+     * @param key   key of new entry
      * @param value value of the new entry
      * @since 1.0
      */
     @Override
     public void addSymbol(String key, String value) {
 
-        this.current.addSymbol(key,value);
+        this.current.addSymbol(key, value);
 
     }
 
@@ -129,7 +131,7 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
      *
      * @since 1.0
      */
-    public void decrementDepth(){
+    public void decrementDepth() {
 
         if (depth == 0)
             return;
@@ -146,7 +148,7 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
      * @throws IndexOutOfBoundsException if current record has no other children to access
      * @since 1.0
      */
-    public void incrementDepth(){
+    public void incrementDepth() {
 
         this.current = this.current.getChild();
 
@@ -158,32 +160,33 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
     /**
      * Resets the record pointer of the record manager and points it to the root of the activation tree
      */
-    public void resetDepth(){
+    public void resetDepth() {
         this.current = this.root;
         this.depth = 0;
     }
 
     /**
      * Prints the Query Activation Tree row by row
+     *
      * @return an snapshot of the records being manage by the query manager
      */
     @Override
-    public String toString(){
+    public String toString() {
 
         //building the snapshot requires lots of string concatenation thus using StringBuilder
         StringBuilder snapshot = new StringBuilder();
 
         //current node to be printed
-        QueryTreeRecord<String,String> current;
+        QueryTreeRecord<String, String> current;
 
         //fifo queue to keep track of nodes of the activation tree that are going to be printed out
-        LinkedList<QueryTreeRecord<String,String>> fifo = new LinkedList<>();
+        LinkedList<QueryTreeRecord<String, String>> fifo = new LinkedList<>();
 
         //add root of the query activation tree
         fifo.add(this.root);
 
         //print all nodes in BFS form until there are no other nodes to print
-        while(!fifo.isEmpty()){
+        while (!fifo.isEmpty()) {
             current = fifo.remove();
 
             snapshot.append(current.toString());

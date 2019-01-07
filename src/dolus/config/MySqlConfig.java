@@ -1,6 +1,7 @@
 package dolus.config;
 
 import dolus.common.Log;
+
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -21,7 +22,7 @@ public class MySqlConfig {
     /**
      * Contains mapping between table name and its primary key
      */
-    private HashMap<String,String> primaryKeys;
+    private HashMap<String, String> primaryKeys;
 
     /**
      * Host address of MySQL database
@@ -48,7 +49,7 @@ public class MySqlConfig {
     /**
      * Wraps a MySqlConfig object around the configs of a MySQL database
      *
-     * @param tablesInfo information about tables of the database
+     * @param tablesInfo  information about tables of the database
      * @param primaryKeys mapping between table name and its primary key
      * @param host        host address of database
      * @param port        port number of database
@@ -57,7 +58,7 @@ public class MySqlConfig {
      * @param password    password credential
      * @since 1.0
      */
-    public MySqlConfig(HashMap<String, HashSet<String>> tablesInfo, HashMap<String,String> primaryKeys,
+    public MySqlConfig(HashMap<String, HashSet<String>> tablesInfo, HashMap<String, String> primaryKeys,
                        String host, String port, String database, String username, String password) {
 
         this.tablesInfo = tablesInfo;
@@ -73,12 +74,12 @@ public class MySqlConfig {
     /**
      * Check whether specified column exists in specified table or not
      *
-     * @param tableName name of the table
+     * @param tableName  name of the table
      * @param columnName name of the column to search for
      * @return true if table contains the specified column, false if table does not exist or colummn did not found
      * @since 1.0
      */
-    public boolean containsColumn(String tableName, String columnName){
+    public boolean containsColumn(String tableName, String columnName) {
 
         if (!tablesInfo.containsKey(tableName)) {
             Log.log(String.format("Table %s is not defined in MySQL database", tableName), Log.ERROR);
@@ -90,11 +91,12 @@ public class MySqlConfig {
 
     /**
      * Return primary key of the specified table
+     *
      * @param tableName name of the table
      * @return PK of the table
      * @since 1.0
      */
-    public String getPrimaryKey(String tableName){
+    public String getPrimaryKey(String tableName) {
 
         if (!primaryKeys.containsKey(tableName)) {
             Log.log(String.format("Table %s is not defined in MySQL database", tableName), Log.ERROR);
@@ -105,7 +107,6 @@ public class MySqlConfig {
     }
 
     /**
-     *
      * @return host address of the database
      * @since 1.0
      */
@@ -114,7 +115,6 @@ public class MySqlConfig {
     }
 
     /**
-     *
      * @return port of the database
      * @since 1.0
      */
@@ -123,7 +123,6 @@ public class MySqlConfig {
     }
 
     /**
-     *
      * @return name of the database
      * @since 1.0
      */
@@ -132,7 +131,6 @@ public class MySqlConfig {
     }
 
     /**
-     *
      * @return username credential
      * @since 1.0
      */
@@ -141,7 +139,6 @@ public class MySqlConfig {
     }
 
     /**
-     *
      * @return password credential
      * @since 1.0
      */

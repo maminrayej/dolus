@@ -6,9 +6,9 @@ package dolus.exception;
  * @author m.amin rayej
  * @since 1.0
  */
-public class IllegalJsonFormatException extends Exception{
+public class IllegalJsonFormatException extends Exception {
 
-    public IllegalJsonFormatException(String msg){
+    public IllegalJsonFormatException(String msg) {
         super(msg);
     }
 }

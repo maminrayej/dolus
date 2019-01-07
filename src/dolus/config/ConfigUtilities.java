@@ -1,11 +1,11 @@
 package dolus.config;
 
 import dolus.common.Log;
-import dolus.language.mysql.utilities.MySqlParser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -88,12 +88,12 @@ public class ConfigUtilities {
      * @return true if parsing was successful and meta data stored successfully, false otherwise
      * @since 1.0
      */
-    private boolean parseConfigContent(String configContent){
+    private boolean parseConfigContent(String configContent) {
 
         //initialize a json parser
         JSONParser parser = new JSONParser();
 
-        try{
+        try {
             //get root object of json file
             JSONObject root = (JSONObject) parser.parse(configContent);
 
@@ -101,13 +101,13 @@ public class ConfigUtilities {
             JSONArray vendors = (JSONArray) root.get("vendors");
 
             //check that at least two vendors are defined
-            if (vendors == null || vendors.size() < 2){
+            if (vendors == null || vendors.size() < 2) {
                 Log.log("At least two vendor must be specified in config file", Log.ERROR);
                 return false;
             }
 
             //for each vendor, call its appropriate parser
-            for (Object vendorObject : vendors){
+            for (Object vendorObject : vendors) {
 
                 JSONObject vendor = (JSONObject) vendorObject;
 
@@ -115,26 +115,24 @@ public class ConfigUtilities {
                 String vendorName = (String) vendor.get("vendor");
 
                 //check whether vendor name attribute is specified
-                if (vendorName == null || vendorName.length() == 0){
+                if (vendorName == null || vendorName.length() == 0) {
                     Log.log("Vendor name is not specified for one the vendors", Log.ERROR);
                     return false;
                 }
 
                 //call vendor specific parser
-                if (vendorName.equalsIgnoreCase("MySQL")){
+                if (vendorName.equalsIgnoreCase("MySQL")) {
                     boolean result = parseMySQLConfig(vendor);
                     if (!result)
                         return false;
-                }
-                else if (vendorName.equalsIgnoreCase("MongoDB")){
+                } else if (vendorName.equalsIgnoreCase("MongoDB")) {
                     boolean result = parseMongoDBConfig(vendor);
                     if (!result)
                         return false;
                 }
             }
 
-        }
-        catch (ParseException e){
+        } catch (ParseException e) {
             Log.log("Could not parse the config file", Log.ERROR);
             return false;
         }
@@ -150,7 +148,7 @@ public class ConfigUtilities {
      * @return true if parsing and storing meta data and configurations was successful
      * @since 1.0
      */
-    private boolean parseMySQLConfig(JSONObject mySqlConfigObject){
+    private boolean parseMySQLConfig(JSONObject mySqlConfigObject) {
 
         //configurations
         String host;
@@ -161,42 +159,42 @@ public class ConfigUtilities {
 
         //meta data
         HashMap<String, HashSet<String>> tablesInfo = new HashMap<>();//map each table with its column set
-        HashMap<String,String> primaryKeys = new HashMap<>();//map each table with its primary key
+        HashMap<String, String> primaryKeys = new HashMap<>();//map each table with its primary key
 
         //configuration extraction
         host = (String) mySqlConfigObject.get("host");
-        if (host == null || host.length() == 0){
+        if (host == null || host.length() == 0) {
             Log.log("MySQL host attribute is not defined", Log.ERROR);
             return false;
         }
 
         port = (String) mySqlConfigObject.get("port");
-        if (port == null || port.length() == 0 || !isInteger(port)){
-            Log.log("MySQL port attribute is not defined or is not a valid integer number",Log.ERROR);
+        if (port == null || port.length() == 0 || !isInteger(port)) {
+            Log.log("MySQL port attribute is not defined or is not a valid integer number", Log.ERROR);
             return false;
         }
 
         database = (String) mySqlConfigObject.get("database");
-        if (database == null || database.length() == 0){
+        if (database == null || database.length() == 0) {
             Log.log("MySQL database name attribute is not defined", Log.ERROR);
             return false;
         }
 
         username = (String) mySqlConfigObject.get("username");
-        if (username == null || username.length() == 0){
+        if (username == null || username.length() == 0) {
             Log.log("MySQL username attribute is not defined", Log.ERROR);
             return false;
         }
 
         password = (String) mySqlConfigObject.get("password");
-        if (password == null || password.length() == 0){
+        if (password == null || password.length() == 0) {
             Log.log("MySQL password attribute is not defined", Log.ERROR);
             return false;
         }
 
         //meta data extraction
         JSONArray tables = (JSONArray) mySqlConfigObject.get("tables");
-        if (tables == null || tables.size() == 0){
+        if (tables == null || tables.size() == 0) {
             Log.log("MySQL tables attribute is not defined or it does not contain any tables", Log.ERROR);
             return false;
         }
@@ -210,30 +208,30 @@ public class ConfigUtilities {
         String column;
 
         //for each table, extract its meta data and store it
-        for (Object tableObject : tables){
+        for (Object tableObject : tables) {
 
             table = (JSONObject) tableObject;
 
             tableName = (String) table.get("name");
-            if (tableName == null || tableName.length() == 0){
+            if (tableName == null || tableName.length() == 0) {
                 Log.log("MySQL table name attribute is not defined for one of its tables", Log.ERROR);
                 return false;
             }
 
             primaryKey = (String) table.get("pk");
-            if (primaryKey == null || primaryKey.length() == 0){
+            if (primaryKey == null || primaryKey.length() == 0) {
                 Log.log("MySQL primary key(pk) attribute is not defined for one of its tables", Log.ERROR);
                 return false;
             }
 
             columns = (JSONArray) table.get("columns");
-            if (columns == null || columns.size() == 0){
+            if (columns == null || columns.size() == 0) {
                 Log.log("MySQL columns attribute is not defined for one of its table or the table does not contain any columns", Log.ERROR);
                 return false;
             }
 
             //extract column names and add them to the column set
-            for (Object columnNameObject : columns){
+            for (Object columnNameObject : columns) {
 
                 column = (String) columnNameObject;
 
@@ -264,7 +262,7 @@ public class ConfigUtilities {
      * @return true if parsing and storing meta data and configurations was successful
      * @since 1.0
      */
-    private boolean parseMongoDBConfig(JSONObject mongoDBConfigObject){
+    private boolean parseMongoDBConfig(JSONObject mongoDBConfigObject) {
 
         //configurations
         String host;
@@ -278,38 +276,38 @@ public class ConfigUtilities {
 
         //configuration extraction
         host = (String) mongoDBConfigObject.get("host");
-        if (host == null || host.length() == 0){
+        if (host == null || host.length() == 0) {
             Log.log("MongoDB host attribute is not defined", Log.ERROR);
             return false;
         }
 
         port = (String) mongoDBConfigObject.get("port");
-        if (port == null || port.length() == 0 || !isInteger(port)){
-            Log.log("MongoDB port attribute is not defined or is not a valid integer number",Log.ERROR);
+        if (port == null || port.length() == 0 || !isInteger(port)) {
+            Log.log("MongoDB port attribute is not defined or is not a valid integer number", Log.ERROR);
             return false;
         }
 
         database = (String) mongoDBConfigObject.get("database");
-        if (database == null || database.length() == 0){
+        if (database == null || database.length() == 0) {
             Log.log("MongoDB database name attribute is not defined", Log.ERROR);
             return false;
         }
 
         username = (String) mongoDBConfigObject.get("username");
-        if (username == null || username.length() == 0){
+        if (username == null || username.length() == 0) {
             Log.log("MongoDB username attribute is not defined", Log.ERROR);
             return false;
         }
 
         password = (String) mongoDBConfigObject.get("password");
-        if (password == null || password.length() == 0){
+        if (password == null || password.length() == 0) {
             Log.log("MongoDB password attribute is not defined", Log.ERROR);
             return false;
         }
 
         //meta data extraction
         JSONArray collectionArray = (JSONArray) mongoDBConfigObject.get("collections");
-        if (collectionArray == null || collectionArray.size() == 0){
+        if (collectionArray == null || collectionArray.size() == 0) {
             Log.log("MongoDB collections attribute is not defined or it does not contain any collection", Log.ERROR);
             return false;
         }
@@ -319,13 +317,13 @@ public class ConfigUtilities {
         JSONObject collection;
 
         //for each collection extract its name
-        for (Object collectionObject : collectionArray){
+        for (Object collectionObject : collectionArray) {
 
             collection = (JSONObject) collectionObject;
 
             collectionName = (String) collection.get("name");
 
-            if (collectionName == null || collectionName.length() == 0){
+            if (collectionName == null || collectionName.length() == 0) {
                 Log.log("MongoDB collection name attribute is not defined for one of its collections", Log.ERROR);
                 return false;
             }
@@ -340,7 +338,6 @@ public class ConfigUtilities {
     }
 
     /**
-     *
      * @return MySqlConfig container that holds configuration and meta data about MySQL database
      */
     public MySqlConfig getMySqlConfig() {
@@ -348,7 +345,6 @@ public class ConfigUtilities {
     }
 
     /**
-     *
      * @return MongoDBConfig container that holds configuration and meta data about MongoDB database
      */
     public MongoDBConfig getMongoDBConfig() {
@@ -357,11 +353,12 @@ public class ConfigUtilities {
 
     /**
      * Checks if the specified string is a integer in form of [0-9]+
+     *
      * @param integer string integer
      * @return true if string is a valid integer, false otherwise
      * @since 1.0
      */
-    private boolean isInteger(String integer){
+    private boolean isInteger(String integer) {
 
         for (int i = 0; i < integer.length(); i++)
             if (!Character.isDigit(integer.charAt(i)))
