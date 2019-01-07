@@ -1,6 +1,7 @@
 package dolus.config;
 
 import dolus.common.Log;
+import dolus.language.mysql.utilities.MySqlParser;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -259,11 +260,81 @@ public class ConfigUtilities {
     /**
      * Extract MongoDB meta data and configurations
      *
-     * @param MongoDBConfig json object that contains MongoDB meta data and configurations
+     * @param mongoDBConfigObject json object that contains MongoDB meta data and configurations
      * @return true if parsing and storing meta data and configurations was successful
      * @since 1.0
      */
-    private boolean parseMongoDBConfig(JSONObject MongoDBConfig){
+    private boolean parseMongoDBConfig(JSONObject mongoDBConfigObject){
+
+        //configurations
+        String host;
+        String port;
+        String database;
+        String username;
+        String password;
+
+        //meta data
+        HashSet<String> collections = new HashSet<>();//set of all collection names in mongodb database
+
+        //configuration extraction
+        host = (String) mongoDBConfigObject.get("host");
+        if (host == null || host.length() == 0){
+            Log.log("MongoDB host attribute is not defined", Log.ERROR);
+            return false;
+        }
+
+        port = (String) mongoDBConfigObject.get("port");
+        if (port == null || port.length() == 0 || !isInteger(port)){
+            Log.log("MongoDB port attribute is not defined or is not a valid integer number",Log.ERROR);
+            return false;
+        }
+
+        database = (String) mongoDBConfigObject.get("database");
+        if (database == null || database.length() == 0){
+            Log.log("MongoDB database name attribute is not defined", Log.ERROR);
+            return false;
+        }
+
+        username = (String) mongoDBConfigObject.get("username");
+        if (username == null || username.length() == 0){
+            Log.log("MongoDB username attribute is not defined", Log.ERROR);
+            return false;
+        }
+
+        password = (String) mongoDBConfigObject.get("password");
+        if (password == null || password.length() == 0){
+            Log.log("MongoDB password attribute is not defined", Log.ERROR);
+            return false;
+        }
+
+        //meta data extraction
+        JSONArray collectionArray = (JSONArray) mongoDBConfigObject.get("collections");
+        if (collectionArray == null || collectionArray.size() == 0){
+            Log.log("MongoDB collections attribute is not defined or it does not contain any collection", Log.ERROR);
+            return false;
+        }
+
+        //meta data holders
+        String collectionName;
+        JSONObject collection;
+
+        //for each collection extract its name
+        for (Object collectionObject : collectionArray){
+
+            collection = (JSONObject) collectionObject;
+
+            collectionName = (String) collection.get("name");
+
+            if (collectionName == null || collectionName.length() == 0){
+                Log.log("MongoDB collection name attribute is not defined for one of its collections", Log.ERROR);
+                return false;
+            }
+
+            collections.add(collectionName);
+        }
+
+        //initialize MongoDB configuration container with extracted data
+        this.mongoDBConfig = new MongoDBConfig(collections, host, port, database, username, password);
 
         return true;
     }
