@@ -147,12 +147,17 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
     /**
      * Causes the record manager to activate next child of the current record in Query Activation Tree.
      *
-     * @throws IndexOutOfBoundsException if current record has no other children to access
      * @since 1.0
      */
     public void incrementDepth() {
 
-        this.current = this.current.getChild();
+        QueryTreeRecord<K,V> child = this.current.getChild();
+
+        //current record does not have any child record -> can not go deeper!
+        if (child == null)
+            return;
+
+        this.current = child;
 
         //update the depth value
         this.depth++;
