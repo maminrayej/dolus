@@ -27,9 +27,9 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
     private QueryTreeRecord<K, V> current;
 
     /**
-     * Keeps track whether the inserted record is the first record or not
+     * Keeps track whether the record manager contains any record or not
      */
-    private boolean firstRecord;
+    private boolean empty;
 
     /**
      * QueryTreeRecordManager default constructor.
@@ -41,7 +41,7 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
 
         this.depth = 0;
 
-        this.firstRecord = true;
+        this.empty = true;
 
     }
 
@@ -88,14 +88,14 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
     @Override
     public void addRecord() {
 
-        //if it's the first record initialize the query activation tree
-        if (this.firstRecord) {
+        //if it's the first record, initialize the query activation tree
+        if (this.empty) {
 
             this.root = new QueryTreeRecord<>();
 
             this.current = this.root;
 
-            this.firstRecord = false;
+            this.empty = false;
 
             return;
         }
@@ -172,6 +172,84 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
     public void resetDepth() {
         this.current = this.root;
         this.depth = 0;
+    }
+
+    /**
+     * Get root record of the query activation tree
+     *
+     * @return root record of the query activation tree
+     * @since 1.0
+     */
+    protected QueryTreeRecord<K, V> getRoot() {
+        return root;
+    }
+
+    /**
+     * Get current active record of the query activation tree
+     *
+     * @return current active record of the query activation tree
+     * @since 1.0
+     */
+    protected QueryTreeRecord<K, V> getCurrent() {
+        return current;
+    }
+
+    /**
+     * Get current depth of the query manager in the query activation tree
+     *
+     * @return depth of the query manager in the query activation tree
+     */
+    public int getDepth() {
+        return depth;
+    }
+
+    /**
+     * Check whether there are any records in the record manager
+     *
+     * @return true if there are no records in the record manager and false if there is at least one record
+     * @since 1.0
+     */
+    protected boolean isEmpty() {
+        return empty;
+    }
+
+    /**
+     * Update depth of the record manager
+     *
+     * @param depth new value of the depth
+     * @since 1.0
+     */
+    protected void setDepth(int depth) {
+        this.depth = depth;
+    }
+
+    /**
+     * Set root record of the record manager
+     *
+     * @param root root record of the record manager
+     * @since 1.0
+     */
+    protected void setRoot(QueryTreeRecord<K, V> root) {
+        this.root = root;
+    }
+
+    /**
+     * Set current record pointer to the record specified in the param
+     *
+     * @param current record to be the new current record
+     */
+    protected void setCurrent(QueryTreeRecord<K, V> current) {
+        this.current = current;
+    }
+
+    /**
+     * Update the empty attribute
+     *
+     * @param empty value of the empty attribute
+     * @since 1.0
+     */
+    protected void setEmpty(boolean empty) {
+        this.empty = empty;
     }
 
     /**
