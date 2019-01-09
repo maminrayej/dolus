@@ -2,6 +2,7 @@ package dolus.base;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * QueryTreeRecord nodes act as a tree node.
@@ -43,7 +44,13 @@ public class QueryTreeRecord<K, V> extends QueryRecord<K, V> {
      * @since 1.0
      */
     public QueryTreeRecord(QueryTreeRecord<K, V> parent) {
-        super(parent, new HashMap<>());
+
+        this(parent, new HashMap<>());
+
+    }
+
+    public QueryTreeRecord(QueryTreeRecord<K,V> parent, Map<K,V> symbolTable){
+        super(parent,symbolTable);
 
         this.children = new ArrayList<>();
 
