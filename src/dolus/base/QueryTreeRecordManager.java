@@ -9,7 +9,7 @@ import java.util.LinkedList;
  * @version 1.0
  * @since 1.0
  */
-public class QueryTreeRecordManager implements RecordManager<String, String, QueryTreeRecord<String, String>> {
+public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTreeRecord<K, V>> {
 
     /**
      * Indicates at what depth in Query Activation Tree the record manager is
@@ -19,12 +19,12 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
     /**
      * Points to the root of the Query Activation Tree
      */
-    private QueryTreeRecord<String, String> root;
+    private QueryTreeRecord<K, V> root;
 
     /**
      * Points to the current active record
      */
-    private QueryTreeRecord<String, String> current;
+    private QueryTreeRecord<K, V> current;
 
     /**
      * Keeps track whether the inserted record is the first record or not
@@ -55,15 +55,15 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
      * @since 1.0
      */
     @Override
-    public String findSymbol(String key) {
+    public V findSymbol(K key) {
 
-        String value = this.current.findValue(key);
+        V value = this.current.findValue(key);
 
         if (value != null)
             return value;
         else {
 
-            QueryRecord<String, String> parent = current.getPrevious();
+            QueryRecord<K, V> parent = current.getPrevious();
 
             while (parent != null) {
 
@@ -101,7 +101,7 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
         }
 
         //create a new record and set its parent to the current record
-        QueryTreeRecord<String, String> record = new QueryTreeRecord<>(this.current);
+        QueryTreeRecord<K, V> record = new QueryTreeRecord<>(this.current);
 
         //add created record as a child to the current record
         this.current.addChild(record);
@@ -122,7 +122,7 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
      * @since 1.0
      */
     @Override
-    public void addSymbol(String key, String value) {
+    public void addSymbol(K key, V value) {
 
         this.current.addSymbol(key, value);
 
@@ -138,7 +138,7 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
         if (depth == 0)
             return;
 
-        this.current = (QueryTreeRecord<String, String>) this.current.getPrevious();
+        this.current = (QueryTreeRecord<K, V>) this.current.getPrevious();
 
         this.depth--;
 
@@ -182,10 +182,10 @@ public class QueryTreeRecordManager implements RecordManager<String, String, Que
         StringBuilder snapshot = new StringBuilder();
 
         //current node to be printed
-        QueryTreeRecord<String, String> current;
+        QueryTreeRecord<K, V> current;
 
         //fifo queue to keep track of nodes of the activation tree that are going to be printed out
-        LinkedList<QueryTreeRecord<String, String>> fifo = new LinkedList<>();
+        LinkedList<QueryTreeRecord<K, V>> fifo = new LinkedList<>();
 
         //add root of the query activation tree
         fifo.add(this.root);
