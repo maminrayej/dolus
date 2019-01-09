@@ -83,7 +83,7 @@ public class QueryRecord<K, V> {
      * @return previous active query record
      * @since 1.0
      */
-    public QueryRecord getPrevious() {
+    public QueryRecord<K,V> getPrevious() {
         return this.previous;
     }
 
