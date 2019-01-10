@@ -22,6 +22,7 @@ public class SelectTablesListener extends MySqlParserBaseListener {
     /**
      * Default constructor. Initializes the record manager
      *
+     * @param recordManager record manager
      * @since 1.0
      */
     public SelectTablesListener(HashMapBasedQueryTreeRecordManager recordManager) {
