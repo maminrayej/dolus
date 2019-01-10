@@ -15,7 +15,7 @@ import java.util.Date;
  */
 public class Log {
 
-    private static final String logDir = "/home/amin/programming/projects/java/Dolus/douls.log";
+    private static final String logDir = "/home/amin/programming/projects/java/Dolus/dolus.log";
 
     /**
      * For errors and exceptions happen in dolus
@@ -81,7 +81,7 @@ public class Log {
         try {
             //create a file writer to write the message to log file
             FileWriter writer = new FileWriter(logFile,true);
-            writer.write(String.format("[%s][%s][%s]%s", currentDateTime, typeStr, componentName, msg));
+            writer.write(String.format("[%s][%s][%s]%s\n", currentDateTime, typeStr, componentName, msg));
 
             //close the writer resource
             writer.close();
