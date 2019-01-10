@@ -95,8 +95,8 @@ public class QueryRecord<K, V> {
      */
     @Override
     public String toString() {
-        return String.format("{previous: %s\n" +
-                "symbols: %s}", this.previous, this.symbolTable);
+        return String.format("previous: %s\n" +
+                "symbols: %s", this.previous, this.symbolTable);
     }
 
 }
