@@ -6,13 +6,11 @@ import java.util.HashMap;
 /**
  * Implementation of QueryTreeRecord using hash map to store necessary information
  *
- * @param <K> Type of the keys in symbol table
- * @param <V> Type of the values in symbol table
  * @author m.amin rayej
  * @version 1.0
  * @since 1.0
  */
-public class HashMapBasedQueryTreeRecord<K,V> extends QueryTreeRecord<K,V> {
+public class HashMapBasedQueryTreeRecord extends QueryTreeRecord<String,String> {
 
     /**
      * Keeps the record of aliases that translator generates for attributes
@@ -39,7 +37,7 @@ public class HashMapBasedQueryTreeRecord<K,V> extends QueryTreeRecord<K,V> {
      * @param parent parent of this record
      * @since 1.0
      */
-    public HashMapBasedQueryTreeRecord(HashMapBasedQueryTreeRecord<K,V> parent){
+    public HashMapBasedQueryTreeRecord(HashMapBasedQueryTreeRecord parent){
 
         super(parent, new HashMap<>());
 
