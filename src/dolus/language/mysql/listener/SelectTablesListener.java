@@ -24,9 +24,9 @@ public class SelectTablesListener extends MySqlParserBaseListener {
      *
      * @since 1.0
      */
-    public SelectTablesListener() {
+    public SelectTablesListener(HashMapBasedQueryTreeRecordManager recordManager) {
 
-        this.recordManager = new HashMapBasedQueryTreeRecordManager();
+        this.recordManager = recordManager;
 
     }
 
