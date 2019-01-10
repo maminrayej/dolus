@@ -285,6 +285,7 @@ public class ConfigUtilities {
 
         //meta data
         HashSet<String> collections = new HashSet<>();//set of all collection names in mongodb database
+        HashMap<String,String> primaryKeys = new HashMap<>();//map each collection name with its primary key
 
         //configuration extraction
         host = (String) mongoDBConfigObject.get("host");
@@ -326,13 +327,15 @@ public class ConfigUtilities {
 
         //meta data holders
         String collectionName;
+        String collectionPrimaryKey;
         JSONObject collection;
 
-        //for each collection extract its name
+        //for each collection extract its name and primary key
         for (Object collectionObject : collectionArray) {
 
             collection = (JSONObject) collectionObject;
 
+            //extract collection name
             collectionName = (String) collection.get("name");
 
             if (collectionName == null || collectionName.length() == 0) {
@@ -340,11 +343,20 @@ public class ConfigUtilities {
                 return false;
             }
 
+            //extract collection primary key
+            collectionPrimaryKey = (String) collection.get("pk");
+
+            //if primary key is not defined or is empty -> set it to default mongoDB primary kry : _id
+            if (collectionPrimaryKey == null || collectionPrimaryKey.length() == 0)
+                collectionPrimaryKey = "_id";
+
             collections.add(collectionName);
+
+            primaryKeys.put(collectionName, collectionPrimaryKey);
         }
 
         //initialize MongoDB configuration container with extracted data
-        this.mongoDBConfig = new MongoDBConfig(collections, host, port, database, username, password);
+        this.mongoDBConfig = new MongoDBConfig(collections, primaryKeys, host, port, database, username, password);
 
         return true;
     }
