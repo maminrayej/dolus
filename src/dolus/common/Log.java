@@ -54,10 +54,6 @@ public class Log {
         if (!logFile.exists())
             System.out.println("Log file does not exist");
 
-        //check whether program has write permission
-        if (!logFile.canWrite())
-            System.out.println("Can not write to log file");
-
         //set date and time format to yyyy-MM-dd HH:mm:ss
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
