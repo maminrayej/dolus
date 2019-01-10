@@ -1,6 +1,6 @@
 package dolus.language.mysql.listener;
 
-import dolus.base.QueryTreeRecordManager;
+import dolus.base.HashMapBasedQueryTreeRecordManager;
 import dolus.language.mysql.utilities.MySqlParser;
 import dolus.language.mysql.utilities.MySqlParserBaseListener;
 
@@ -17,7 +17,7 @@ public class SelectTablesListener extends MySqlParserBaseListener {
     /**
      * Record Manager manages the records during traversal of the parse tree
      */
-    private QueryTreeRecordManager recordManager;
+    private HashMapBasedQueryTreeRecordManager recordManager;
 
     /**
      * Default constructor. Initializes the record manager
@@ -26,7 +26,7 @@ public class SelectTablesListener extends MySqlParserBaseListener {
      */
     public SelectTablesListener() {
 
-        this.recordManager = new QueryTreeRecordManager();
+        this.recordManager = new HashMapBasedQueryTreeRecordManager();
 
     }
 
