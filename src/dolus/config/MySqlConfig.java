@@ -86,4 +86,14 @@ public class MySqlConfig extends DatabaseConfig{
         return primaryKeys.get(tableName);
     }
 
+    /**
+     * Check whether MySQL database contains the table or not
+     *
+     * @param tableName name of the table
+     * @return true if MySQL contains the table, false otherwise
+     */
+    public boolean containsTable(String tableName){
+        return tablesInfo.containsKey(tableName);
+    }
+
 }
