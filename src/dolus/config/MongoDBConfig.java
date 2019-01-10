@@ -1,5 +1,8 @@
 package dolus.config;
 
+import dolus.common.Log;
+
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -9,7 +12,12 @@ import java.util.HashSet;
  * @version 1.0
  * @since 1.0
  */
-public class MongoDBConfig {
+public class MongoDBConfig extends DatabaseConfig{
+
+    /**
+     * Component name of the logging system
+     */
+    private static final String componentName = "MongoDBConfig";
 
     /**
      * Contains collection names
@@ -17,31 +25,15 @@ public class MongoDBConfig {
     private HashSet<String> collections;
 
     /**
-     * Host address of MySQL database
+     * Contains mapping between collection name and its primary key
      */
-    private String host;
-
-    /**
-     * Port number which database in listening on
-     */
-    private String port;
-
-    /**
-     * Name of the database
-     */
-    private String database;
-
-
-    /**
-     * Credentials
-     */
-    private String username;
-    private String password;
+    private HashMap<String, String> primaryKeys;
 
     /**
      * Wraps a MongoDBConfig object around the configs of a MongoDB database
      *
      * @param collections set of collection names
+     * @param primaryKeys mapping between collection name and its primary key
      * @param host        host address
      * @param port        port number
      * @param database    database name
@@ -49,14 +41,12 @@ public class MongoDBConfig {
      * @param password    password credentials
      * @since 1.0
      */
-    public MongoDBConfig(HashSet<String> collections, String host, String port, String database, String username, String password) {
+    public MongoDBConfig(HashSet<String> collections, HashMap<String,String> primaryKeys, String host, String port, String database, String username, String password) {
 
+        super(host, port, database, username, password);
         this.collections = collections;
-        this.host = host;
-        this.port = port;
-        this.database = database;
-        this.username = username;
-        this.password = password;
+        this.primaryKeys = primaryKeys;
+
     }
 
     /**
@@ -72,52 +62,20 @@ public class MongoDBConfig {
     }
 
     /**
-     * Host address of the database
+     * Return primary key of the specified collection
      *
-     * @return host address of the database
+     * @param collectionName name of the collection
+     * @return PK of the table
      * @since 1.0
      */
-    public String getHost() {
-        return host;
+    public String getPrimaryKey(String collectionName) {
+
+        if (!primaryKeys.containsKey(collectionName)) {
+            Log.log(String.format("Collection %s is not defined in MongoDB database", collectionName), componentName, Log.ERROR);
+            return null;
+        }
+
+        return primaryKeys.get(collectionName);
     }
 
-    /**
-     * Port number of the database
-     *
-     * @return port of the database
-     * @since 1.0
-     */
-    public String getPort() {
-        return port;
-    }
-
-    /**
-     * Database name
-     *
-     * @return name of the database
-     * @since 1.0
-     */
-    public String getDatabase() {
-        return database;
-    }
-
-    /**
-     * Username credential
-     *
-     * @return username credential
-     * @since 1.0
-     */
-    public String getUsername() {
-        return username;
-    }
-
-    /**
-     * Password credential
-     *
-     * @return password credential
-     * @since 1.0
-     */
-    public String getPassword() {
-        return password;
-    }
 }
