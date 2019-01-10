@@ -12,7 +12,7 @@ import java.util.HashSet;
  * @version 1.0
  * @since 1.0
  */
-public class MySqlConfig {
+public class MySqlConfig extends DatabaseConfig{
 
     /**
      * Component name of the logging system
@@ -30,28 +30,6 @@ public class MySqlConfig {
     private HashMap<String, String> primaryKeys;
 
     /**
-     * Host address of MySQL database
-     */
-    private String host;
-
-    /**
-     * Port number which database in listening on
-     */
-    private String port;
-
-    /**
-     * Name of the database
-     */
-    private String database;
-
-
-    /**
-     * Credentials
-     */
-    private String username;
-    private String password;
-
-    /**
      * Wraps a MySqlConfig object around the configs of a MySQL database
      *
      * @param tablesInfo  information about tables of the database
@@ -66,13 +44,10 @@ public class MySqlConfig {
     public MySqlConfig(HashMap<String, HashSet<String>> tablesInfo, HashMap<String, String> primaryKeys,
                        String host, String port, String database, String username, String password) {
 
+        super(host, port, database, username, password);
+
         this.tablesInfo = tablesInfo;
         this.primaryKeys = primaryKeys;
-        this.host = host;
-        this.port = port;
-        this.database = database;
-        this.username = username;
-        this.password = password;
 
     }
 
@@ -111,53 +86,4 @@ public class MySqlConfig {
         return primaryKeys.get(tableName);
     }
 
-    /**
-     * Host address of the database
-     *
-     * @return host address of the database
-     * @since 1.0
-     */
-    public String getHost() {
-        return host;
-    }
-
-    /**
-     * Port number of the database
-     *
-     * @return port of the database
-     * @since 1.0
-     */
-    public String getPort() {
-        return port;
-    }
-
-    /**
-     * Database name
-     *
-     * @return name of the database
-     * @since 1.0
-     */
-    public String getDatabase() {
-        return database;
-    }
-
-    /**
-     * Username credential
-     *
-     * @return username credential
-     * @since 1.0
-     */
-    public String getUsername() {
-        return username;
-    }
-
-    /**
-     * Password credential
-     *
-     * @return password credential
-     * @since 1.0
-     */
-    public String getPassword() {
-        return password;
-    }
 }
