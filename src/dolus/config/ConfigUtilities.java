@@ -216,11 +216,14 @@ public class ConfigUtilities {
         String tableName;
         String primaryKey;
         JSONArray columns;
-        HashSet<String> columnsSet = new HashSet<>();
+        HashSet<String> columnsSet;
         String column;
 
         //for each table, extract its meta data and store it
         for (Object tableObject : tables) {
+
+            //make a new column set
+            columnsSet = new HashSet<>();
 
             table = (JSONObject) tableObject;
 
@@ -255,9 +258,6 @@ public class ConfigUtilities {
 
             //map each table with its primary key
             primaryKeys.put(tableName, primaryKey);
-
-            //clear the columns set holder for next iteration
-            columnsSet.clear();
 
         }
 
