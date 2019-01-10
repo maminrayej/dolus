@@ -81,9 +81,6 @@ public class SelectTablesListener extends MySqlParserBaseListener {
     @Override
     public void exitSqlStatement(MySqlParser.SqlStatementContext ctx) {
 
-        //debug
-        System.out.println(recordManager.toString());
-
         //reset the record pointer in record manager
         recordManager.resetDepth();
 
