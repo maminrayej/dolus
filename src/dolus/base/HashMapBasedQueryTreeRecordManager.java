@@ -61,7 +61,7 @@ public class HashMapBasedQueryTreeRecordManager extends QueryTreeRecordManager<S
     public boolean addGeneratedAliases(String tableAlias, String generatedTableAlias, String tableName, String generatedTableName){
 
         //split the alias.attribute to [alias, attribute] and get alias
-        String alias = tableAlias.split(".",2)[0];
+        String alias = tableAlias.split("\\.",2)[0];
 
         //find the query record that contains the alias
         HashMapBasedQueryTreeRecord record = findRecordContainingAlias(alias);
@@ -87,7 +87,7 @@ public class HashMapBasedQueryTreeRecordManager extends QueryTreeRecordManager<S
     public String getGeneratedTableAlias(String tableAlias){
 
         //split the alias.attribute to [alias, attribute] and get alias
-        String alias = tableAlias.split(".",2)[0];
+        String alias = tableAlias.split("\\.",2)[0];
 
         //find the query record that contains the alias
         HashMapBasedQueryTreeRecord record = findRecordContainingAlias(alias);
