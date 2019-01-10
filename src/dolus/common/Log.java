@@ -80,7 +80,7 @@ public class Log {
 
         try {
             //create a file writer to write the message to log file
-            FileWriter writer = new FileWriter(logFile);
+            FileWriter writer = new FileWriter(logFile,true);
             writer.write(String.format("[%s][%s][%s]%s", currentDateTime, typeStr, componentName, msg));
 
             //close the writer resource
