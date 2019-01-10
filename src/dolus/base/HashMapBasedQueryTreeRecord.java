@@ -79,7 +79,7 @@ public class HashMapBasedQueryTreeRecord<K,V> extends QueryTreeRecord<K,V> {
 
             generatedTablesMap.put(tableName, tables);
         }
-        else{
+        else if (!generatedTablesMap.get(tableName).contains(generatedTable)){
             generatedTablesMap.get(tableName).add(generatedTable);
         }
     }
