@@ -106,4 +106,12 @@ public class HashMapBasedQueryTreeRecord extends QueryTreeRecord<String,String> 
         return generatedTableNamesMap.getOrDefault(tableName,null);
     }
 
+    @Override
+    public String toString(){
+        String temp = String.format("Generated Table Aliases : %s\nGenerated Table Names: %s", generatedTableAliasesMap, generatedTableNamesMap);
+
+        return "{" + super.toString() + "\n" +temp + "}";
+
+    }
+
 }
