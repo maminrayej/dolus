@@ -32,7 +32,7 @@ public class GeneratorListener extends MySqlParserBaseListener {
     private boolean result;
 
 
-    boolean firstSelect =true;
+    private boolean firstSelect =true;
 
     /**
      * Default constructor. Initializes the record manager
