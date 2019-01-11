@@ -5,3 +5,4 @@ Dolus.iml
 config.json
 src/dolus/Main.java
 dolus.log
+query-examples.sql
