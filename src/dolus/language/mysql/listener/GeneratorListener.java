@@ -31,6 +31,9 @@ public class GeneratorListener extends MySqlParserBaseListener {
      */
     private boolean result;
 
+
+    boolean firstSelect =true;
+
     /**
      * Default constructor. Initializes the record manager
      *
@@ -55,8 +58,10 @@ public class GeneratorListener extends MySqlParserBaseListener {
     public void enterQuerySpecification(MySqlParser.QuerySpecificationContext ctx) {
 
         //aks the record manager to activate the appropriate child record
-        recordManager.incrementDepth();
-
+        if (!firstSelect)
+            recordManager.incrementDepth();
+        else
+            firstSelect = false;
     }
 
     /**
@@ -113,7 +118,7 @@ public class GeneratorListener extends MySqlParserBaseListener {
         }
 
         //generate a table alias for the generated table name
-        String generatedTableAlias = generatedTableName.replaceAll("\\.","_");
+        String generatedTableAlias = generatedTableName.replaceAll("\\.","_") + "_" + alias.toLowerCase();
 
         //add these generated aliases to the appropriate record
         recordManager.addGeneratedAliases(alias + dottedAttribute,
