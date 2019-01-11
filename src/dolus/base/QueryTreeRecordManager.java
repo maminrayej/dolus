@@ -105,6 +105,7 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
 
             this.current = this.root;
 
+            //push a child access index for the new added record
             accessChildrenStack.push(0);
 
             this.empty = false;
@@ -121,6 +122,7 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
         //update the current record
         this.current = record;
 
+        //push a child access index for the new added record
         this.accessChildrenStack.push(0);
 
         //update current depth of the record manager
@@ -155,6 +157,7 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
 
         this.current = (QueryTreeRecord<K, V>) this.current.getPrevious();
 
+        //remove the child index of the previous record
         this.accessChildrenStack.pop();
 
         this.depth--;
@@ -168,12 +171,15 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
      */
     public void incrementDepth() {
 
+        //get index of the child to be retrieved next
         int childIndex = this.accessChildrenStack.pop();
 
         QueryTreeRecord<K,V> child = this.current.getChild(childIndex);
 
+        //point to the next child for the next time
         childIndex = childIndex + 1;
 
+        //update the child access index for the record
         accessChildrenStack.push(childIndex);
 
         //current record does not have any child record -> can not go deeper!
@@ -278,6 +284,11 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
         this.empty = empty;
     }
 
+    /**
+     * Allows subclasses to push children access index for their new created records
+     *
+     * @since 1.0
+     */
     protected void pushChildIndex(){
         accessChildrenStack.push(0);
     }

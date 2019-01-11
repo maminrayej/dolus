@@ -21,15 +21,19 @@ public class HashMapBasedQueryTreeRecordManager extends QueryTreeRecordManager<S
     public void addRecord(){
 
         //if it's the first record, initialize the query activation tree
-        if (super.isEmpty()) {
+        if (isEmpty()) {
 
-            super.setRoot(new HashMapBasedQueryTreeRecord());
+            //set the new created record to be the root of query activation tree
+            setRoot(new HashMapBasedQueryTreeRecord());
 
-            super.setCurrent(super.getRoot());
+            //set record pointer to root
+            setCurrent(getRoot());
 
-            super.setEmpty(false);
+            //declare that record manager is no longer empty
+            setEmpty(false);
 
-            super.pushChildIndex();
+            //push a child access index for the new added record
+            pushChildIndex();
 
             return;
         }
@@ -41,10 +45,11 @@ public class HashMapBasedQueryTreeRecordManager extends QueryTreeRecordManager<S
         //add created record as a child to the current record
         current.addChild(record);
 
-        //update the current record
+        //update the record pointer
         setCurrent(record);
 
-        super.pushChildIndex();
+        //push a child access index for the new added record
+        pushChildIndex();
 
         //update current depth of the record manager
         setDepth(getDepth()+1);
