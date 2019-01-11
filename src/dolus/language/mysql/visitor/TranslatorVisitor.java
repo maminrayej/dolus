@@ -74,6 +74,8 @@ public class TranslatorVisitor {
 
     /**
      * Translates the parse tree
+     *
+     * @since 1.0
      */
     public String translate() {
 
@@ -176,6 +178,7 @@ public class TranslatorVisitor {
      *
      * @param current current node in the parse tree
      * @param result  translated content
+     * @since 1.0
      */
     private void translateColumnNameReference(FullColumnNameContext current, StringBuilder result) {
 
@@ -191,6 +194,7 @@ public class TranslatorVisitor {
      *
      * @param current current node in the parse tree
      * @param result  translated content
+     * @since 1.0
      */
     private void translateTableName(AtomTableItemContext current, StringBuilder result) {
 
