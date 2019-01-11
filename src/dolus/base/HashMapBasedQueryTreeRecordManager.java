@@ -2,6 +2,7 @@ package dolus.base;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * This class manages HashMapBasedQueryRecords
@@ -147,6 +148,16 @@ public class HashMapBasedQueryTreeRecordManager extends QueryTreeRecordManager<S
         }
 
         return current;
+    }
+
+    /**
+     * Get generated tables in the current active query
+     *
+     * @return generated tables in the current active query
+     * @since 1.0
+     */
+    public HashMap<String, ArrayList<String>> getGeneratedTableNamesMap() {
+        return ((HashMapBasedQueryTreeRecord) getCurrent()).getGeneratedTableNamesMap();
     }
 
 }
