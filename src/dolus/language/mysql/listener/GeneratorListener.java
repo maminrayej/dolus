@@ -123,7 +123,7 @@ public class GeneratorListener extends MySqlParserBaseListener {
         //add these generated aliases to the appropriate record
         recordManager.addGeneratedAliases(alias + dottedAttribute,
                 generatedTableAlias + dottedAttribute.toLowerCase(),
-                                tableName, generatedTableName);
+                                tableName, generatedTableAlias);
     }
 
     /**
