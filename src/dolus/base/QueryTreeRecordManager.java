@@ -187,6 +187,9 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
 
         this.current = child;
 
+        //push a child index for the new current record
+        accessChildrenStack.push(0);
+
         //update the depth value
         this.depth++;
 
