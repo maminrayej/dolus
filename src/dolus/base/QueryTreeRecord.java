@@ -22,11 +22,6 @@ public class QueryTreeRecord<K, V> extends QueryRecord<K, V> {
     private ArrayList<QueryTreeRecord<K, V>> children;
 
     /**
-     * Keeps track of which child should be retrieved next
-     */
-    private int childIndex;
-
-    /**
      * Default constructor of the QueryTreeRecord.
      * It sets the parent of the current record to null and initializes the symbol table and children list.
      *
@@ -54,7 +49,6 @@ public class QueryTreeRecord<K, V> extends QueryRecord<K, V> {
 
         this.children = new ArrayList<>();
 
-        this.childIndex = 0;
     }
 
     /**
@@ -73,23 +67,12 @@ public class QueryTreeRecord<K, V> extends QueryRecord<K, V> {
      * @return next query record in the children list, or null if there is no other child to retrieve
      * @since 1.0
      */
-    public QueryTreeRecord<K, V> getChild() {
+    public QueryTreeRecord<K, V> getChild(int index) {
 
-        if (childIndex >= children.size())
+        if (index >= children.size())
             return null;
 
-        QueryTreeRecord<K,V> child = children.get(childIndex);
-
-        childIndex++;
-
-        return child;
-    }
-
-    /**
-     * Resets the child pointer to the first child in the children queue
-     */
-    public void resetChildPointer(){
-        this.childIndex = 0;
+        return children.get(index);
     }
 
     /**
