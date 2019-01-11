@@ -1,6 +1,8 @@
 package dolus.base;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Stack;
 
 /**
  * Is a record manager that manages the query records as a tree named Query Activation Tree.
@@ -27,6 +29,11 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
     private QueryTreeRecord<K, V> current;
 
     /**
+     * Keeps track of which child should be retrieved next from current active query
+     */
+    private Stack<Integer> accessChildrenStack;
+
+    /**
      * Keeps track whether the record manager contains any record or not
      */
     private boolean empty;
@@ -42,6 +49,8 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
         this.depth = 0;
 
         this.empty = true;
+
+        this.accessChildrenStack = new Stack<>();
 
     }
 
@@ -88,12 +97,15 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
     @Override
     public void addRecord() {
 
+        System.out.println("add record called");
         //if it's the first record, initialize the query activation tree
         if (this.empty) {
 
             this.root = new QueryTreeRecord<>();
 
             this.current = this.root;
+
+            accessChildrenStack.push(0);
 
             this.empty = false;
 
@@ -108,6 +120,8 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
 
         //update the current record
         this.current = record;
+
+        this.accessChildrenStack.push(0);
 
         //update current depth of the record manager
         this.depth++;
@@ -135,10 +149,13 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
      */
     public void decrementDepth() {
 
+        System.out.println("decrement called");
         if (depth == 0)
             return;
 
         this.current = (QueryTreeRecord<K, V>) this.current.getPrevious();
+
+        this.accessChildrenStack.pop();
 
         this.depth--;
 
@@ -151,7 +168,13 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
      */
     public void incrementDepth() {
 
-        QueryTreeRecord<K,V> child = this.current.getChild();
+        int childIndex = this.accessChildrenStack.pop();
+
+        QueryTreeRecord<K,V> child = this.current.getChild(childIndex);
+
+        childIndex = childIndex + 1;
+
+        accessChildrenStack.push(childIndex);
 
         //current record does not have any child record -> can not go deeper!
         if (child == null)
@@ -172,6 +195,9 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
     public void resetDepth() {
         this.current = this.root;
         this.depth = 0;
+
+        this.accessChildrenStack.clear();
+        this.accessChildrenStack.push(0);
     }
 
     /**
@@ -250,6 +276,10 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
      */
     protected void setEmpty(boolean empty) {
         this.empty = empty;
+    }
+
+    protected void pushChildIndex(){
+        accessChildrenStack.push(0);
     }
 
     /**

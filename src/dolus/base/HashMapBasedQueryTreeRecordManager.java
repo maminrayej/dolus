@@ -29,6 +29,8 @@ public class HashMapBasedQueryTreeRecordManager extends QueryTreeRecordManager<S
 
             super.setEmpty(false);
 
+            super.pushChildIndex();
+
             return;
         }
 
@@ -41,6 +43,8 @@ public class HashMapBasedQueryTreeRecordManager extends QueryTreeRecordManager<S
 
         //update the current record
         setCurrent(record);
+
+        super.pushChildIndex();
 
         //update current depth of the record manager
         setDepth(getDepth()+1);
