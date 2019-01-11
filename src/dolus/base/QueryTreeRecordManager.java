@@ -151,7 +151,6 @@ public class QueryTreeRecordManager<K,V> implements RecordManager<K, V, QueryTre
      */
     public void decrementDepth() {
 
-        System.out.println("decrement called");
         if (depth == 0)
             return;
 
