@@ -108,22 +108,19 @@ public class GeneratorListener extends MySqlParserBaseListener {
         }
 
         //generate a table based on the accessed attribute
-        String generatedTableName = generateTableName(tableName, attribute);
+        String generatedAliasAttribute = generateAliasAttribute(tableName, alias, attribute);
 
         //if generating the table failed, log an error message and stop generating
-        if (generatedTableName == null){
+        if (generatedAliasAttribute == null){
             Log.log("Generating phase failed", componentName, Log.ERROR);
             result = false;//generating failed
             return;
         }
 
-        //generate a table alias for the generated table name
-        String generatedTableAlias = generatedTableName.replaceAll("\\.","_") + "_" + alias.toLowerCase();
-
         //add these generated aliases to the appropriate record
         recordManager.addGeneratedAliases(alias, alias + dottedAttribute,
-                generatedTableAlias + dottedAttribute.toLowerCase(),
-                                tableName, generatedTableAlias);
+                generatedAliasAttribute + dottedAttribute.toLowerCase(),
+                                tableName, generatedAliasAttribute);
     }
 
     /**
@@ -156,10 +153,11 @@ public class GeneratorListener extends MySqlParserBaseListener {
      * Generates a table according to the accessed attribute
      *
      * @param tableName name of the table in the original query
+     * @param alias alias in alias.attribute
      * @param attribute attribute accessed by the alias
      * @return generated table name, null if the generator fails
      */
-    private String generateTableName(String tableName, String attribute){
+    private String generateAliasAttribute(String tableName, String alias, String attribute){
 
         //check whether table is in MySQL or not
         boolean isMySqlTable = mySqlConfig.containsTable(tableName.toLowerCase());
@@ -191,7 +189,7 @@ public class GeneratorListener extends MySqlParserBaseListener {
             database = mongoDBConfig.getDatabase();
         }
 
-        return String.format("%s.%s.%s", engine, database, tableName.toLowerCase());
+        return String.format("%s_%s_%s_%s", engine, database, tableName.toLowerCase(), alias.toLowerCase());
     }
 }
 
