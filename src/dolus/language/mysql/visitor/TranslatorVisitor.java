@@ -299,8 +299,11 @@ public class TranslatorVisitor {
      */
     private void translateColumnNameReference(FullColumnNameContext current, StringBuilder result) {
 
+        //extract the alias from alias.attribute
+        String alias = current.uid().getText();
+
         //ask the record manager to find the generated_alias.attribute for the original alias.attribute in its records
-        String generatedAlias = recordManager.getGeneratedAliasAttribute(current.getText());
+        String generatedAlias = recordManager.getGeneratedAliasAttribute(alias, current.getText());
 
         //append an whitespace for better printing
         result.append(generatedAlias).append(" ");
