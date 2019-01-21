@@ -121,7 +121,7 @@ public class GeneratorListener extends MySqlParserBaseListener {
         String generatedTableAlias = generatedTableName.replaceAll("\\.","_") + "_" + alias.toLowerCase();
 
         //add these generated aliases to the appropriate record
-        recordManager.addGeneratedAliases(alias + dottedAttribute,
+        recordManager.addGeneratedAliases(alias, alias + dottedAttribute,
                 generatedTableAlias + dottedAttribute.toLowerCase(),
                                 tableName, generatedTableAlias);
     }
