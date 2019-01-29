@@ -2,6 +2,5 @@
 doc
 out
 Dolus.iml
-config.json
 dolus.log
 query-examples.sql
