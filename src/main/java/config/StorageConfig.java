@@ -10,7 +10,7 @@ import java.util.List;
  * @version 1.0
  * @since 1.0
  */
-public class StorageConfig<T extends StorageConfig> {
+public abstract class StorageConfig<T extends StorageConfig> {
 
     /**
      * Unique id of the storage
