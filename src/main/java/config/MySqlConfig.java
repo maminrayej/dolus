@@ -12,7 +12,7 @@ import java.util.HashSet;
  * @version 1.0
  * @since 1.0
  */
-public class MySqlConfig extends DatabaseConfig{
+public class MySqlConfig extends StorageConfig {
 
     /**
      * Component name of the logging system

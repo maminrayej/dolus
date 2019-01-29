@@ -7,7 +7,7 @@ package config;
  * @version 1.0
  * @since 1.0
  */
-public class DatabaseConfig {
+public class StorageConfig {
 
     /**
      * Host address of database
@@ -32,7 +32,7 @@ public class DatabaseConfig {
     private String password;
 
     /**
-     * Wraps a DatabaseConfig object around the configs of a database
+     * Wraps a StorageConfig object around the configs of a database
      *
      * @param host     host address of database
      * @param port     port number of database
@@ -41,7 +41,7 @@ public class DatabaseConfig {
      * @param password password credential
      * @since 1.0
      */
-    public DatabaseConfig(String host, String port, String database, String username, String password) {
+    public StorageConfig(String host, String port, String database, String username, String password) {
 
         this.host = host;
         this.port = port;

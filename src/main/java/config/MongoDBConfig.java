@@ -12,7 +12,7 @@ import java.util.HashSet;
  * @version 1.0
  * @since 1.0
  */
-public class MongoDBConfig extends DatabaseConfig{
+public class MongoDBConfig extends StorageConfig {
 
     /**
      * Component name of the logging system
