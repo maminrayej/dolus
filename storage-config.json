@@ -2,7 +2,7 @@
   "storages"  : [
     {
       "id"      : "mysqldb",
-      "type"    : "MySQL",
+      "type"    : "mysql",
       "engine"  : "apache_drill",
       "host"    : "localhost",
       "port"    : "3306",
@@ -46,7 +46,7 @@
     {
       "id"          : "mongo",
       "parent"      : "mysqldb",
-      "type"        : "MongoDB",
+      "type"        : "mongo",
       "engine"      : "apache_drill",
       "host"        : "loaclhost",
       "port"        : "3306",
