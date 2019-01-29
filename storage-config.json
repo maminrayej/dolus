@@ -1,0 +1,74 @@
+{
+  "storages"  : [
+    {
+      "id"      : "mysqldb",
+      "type"    : "MySQL",
+      "engine"  : "apache_drill",
+      "host"    : "localhost",
+      "port"    : "3306",
+      "database": "sailingmanagement",
+      "username": "amin",
+      "password": "amin",
+      "tables"  : [
+        {
+          "name"    : "sailors",
+          "columns" : [
+            "sid",
+            "sname",
+            "age"
+          ],
+          "pk"      : "sid"
+        }
+        ,
+        {
+          "name"    : "reserves",
+          "columns" : [
+            "rid",
+            "sid",
+            "bid",
+            "rdate"
+          ],
+          "pk"      : "rid"
+        }
+        ,
+        {
+          "name"    : "boats",
+          "columns" : [
+            "bid",
+            "bname",
+            "color"
+          ],
+          "pk"      : "bid"
+        }
+      ]
+    }
+    ,
+    {
+      "id"          : "mongo",
+      "parent"      : "mysqldb",
+      "type"        : "MongoDB",
+      "engine"      : "apache_drill",
+      "host"        : "loaclhost",
+      "port"        : "3306",
+      "database"    : "sailingmanagement",
+      "username"    : "amin",
+      "password"    : "amin",
+      "collections" : [
+        {
+          "name"    : "sailors",
+          "pk"      : "_id"
+        }
+        ,
+        {
+          "name"    : "reserves",
+          "pk"      : "_id"
+        }
+        ,
+        {
+          "name"    : "boats",
+          "pk"      : "_id"
+        }
+      ]
+    }
+  ]
+}
