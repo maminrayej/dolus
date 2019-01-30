@@ -221,7 +221,7 @@ public abstract class StorageConfig {
      * Get primary key of the name collection
      *
      * @param collectionName name of the collection
-     * @return name of the attribute which is primary key of the named collection
+     * @return name of the attribute which is primary key of the named collection, null otherwise
      * @since 1.0
      */
     public abstract String getPrimaryKey(String collectionName);
