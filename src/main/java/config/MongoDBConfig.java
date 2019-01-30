@@ -12,7 +12,7 @@ import java.util.HashSet;
  * @version 1.0
  * @since 1.0
  */
-public class MongoDBConfig<T extends StorageConfig> extends StorageConfig<T> {
+public class MongoDBConfig extends StorageConfig {
 
     /**
      * Component name to use in the logging system
@@ -45,13 +45,11 @@ public class MongoDBConfig<T extends StorageConfig> extends StorageConfig<T> {
      * @since 1.0
      */
     public MongoDBConfig(HashSet<String> collections, HashMap<String,String> primaryKeys,
-                         String id, String engine, T parent, String host, String port, String database, String username, String password) {
+                         String id, String engine, StorageConfig parent, String host, String port, String database, String username, String password) {
 
         super(id, engine, parent, host, port, database, username, password);
         this.collections = collections;
         this.primaryKeys = primaryKeys;
-
-        Log.log(String.format("MongoDB Storage: %s is registered with parent: %s", id, parent.getId()), componentName, Log.INFORMATION);
 
     }
 
@@ -76,35 +74,19 @@ public class MongoDBConfig<T extends StorageConfig> extends StorageConfig<T> {
         this.collections = collections;
         this.primaryKeys = primaryKeys;
 
-        Log.log(String.format("MongoDB Storage: %s is registered", id), componentName, Log.INFORMATION);
-
     }
 
-    /**
-     * Checks whether mongoDB contains specified collection or not
-     *
-     * @param collectionName name of the collection
-     * @return true if database contains the collection, false otherwise
-     * @since 1.0
-     */
     public boolean containsCollection(String collectionName) {
 
         return this.collections.contains(collectionName);
     }
 
-    /**
-     * Return primary key of the specified collection
-     *
-     * @param collectionName name of the collection
-     * @return PK of the table , null if collection does not exist
-     * @since 1.0
-     */
-    public String getPrimaryKey(String collectionName) {
+    @Override
+    public boolean containsAttribute(String collectionName, String attributeName) {
+        return true;
+    }
 
-        if (!primaryKeys.containsKey(collectionName)) {
-            Log.log(String.format("Collection %s is not defined in MongoDB database", collectionName), componentName, Log.ERROR);
-            return null;
-        }
+    public String getPrimaryKey(String collectionName) {
 
         return primaryKeys.get(collectionName);
     }
