@@ -12,7 +12,7 @@ import java.util.HashSet;
  * @version 1.0
  * @since 1.0
  */
-public class MySqlConfig<T extends StorageConfig> extends StorageConfig<T> {
+public class MySqlConfig extends StorageConfig {
 
     /**
      * Component name to use in the logging system
@@ -46,7 +46,7 @@ public class MySqlConfig<T extends StorageConfig> extends StorageConfig<T> {
      * @since 1.0
      */
     public MySqlConfig(HashMap<String, HashSet<String>> tablesInfo, HashMap<String, String> primaryKeys,
-                       String id, String engine, T parent, String host, String port, String database, String username, String password) {
+                       String id, String engine, StorageConfig parent, String host, String port, String database, String username, String password) {
 
         super(id, engine, parent, host, port, database, username, password);
 
@@ -83,49 +83,31 @@ public class MySqlConfig<T extends StorageConfig> extends StorageConfig<T> {
 
     }
 
-    /**
-     * Check whether specified column exists in specified table or not
-     *
-     * @param tableName  name of the table
-     * @param columnName name of the column to search for
-     * @return true if table contains the specified column, false if table does not exist or column did not found
-     * @since 1.0
-     */
-    public boolean containsColumn(String tableName, String columnName) {
+    @Override
+    public boolean containsAttribute(String collectionName, String attributeName) {
 
-        if (!tablesInfo.containsKey(tableName)) {
-            Log.log(String.format("Table %s is not defined in MySQL storage", tableName), componentName, Log.ERROR);
+        if (!tablesInfo.containsKey(collectionName)) {
+            Log.log(String.format("Table %s is not defined in MySQL storage", collectionName), componentName, Log.ERROR);
             return false;
         }
 
-        return tablesInfo.get(tableName).contains(columnName);
+        return tablesInfo.get(collectionName).contains(attributeName);
     }
 
-    /**
-     * Return primary key of the specified table
-     *
-     * @param tableName name of the table
-     * @return PK of the table or null if table does not exist
-     * @since 1.0
-     */
-    public String getPrimaryKey(String tableName) {
+    @Override
+    public String getPrimaryKey(String collectionName) {
 
-        if (!primaryKeys.containsKey(tableName)) {
-            Log.log(String.format("Table %s is not defined in MySQL storage", tableName), componentName, Log.ERROR);
+        if (!primaryKeys.containsKey(collectionName)) {
+            Log.log(String.format("Table %s is not defined in MySQL storage", collectionName), componentName, Log.ERROR);
             return null;
         }
 
-        return primaryKeys.get(tableName);
+        return primaryKeys.get(collectionName);
     }
 
-    /**
-     * Check whether MySQL storage contains the table or not
-     *
-     * @param tableName name of the table
-     * @return true if MySQL contains the table, false otherwise
-     */
-    public boolean containsTable(String tableName){
-        return tablesInfo.containsKey(tableName);
-    }
+    @Override
+    public boolean containsCollection(String collectionName) {
 
+        return tablesInfo.containsKey(collectionName);
+    }
 }
