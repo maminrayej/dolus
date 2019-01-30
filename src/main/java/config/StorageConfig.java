@@ -10,7 +10,7 @@ import java.util.List;
  * @version 1.0
  * @since 1.0
  */
-public abstract class StorageConfig<T extends StorageConfig> {
+public abstract class StorageConfig {
 
     /**
      * Unique id of the storage
@@ -25,12 +25,12 @@ public abstract class StorageConfig<T extends StorageConfig> {
     /**
      * Parent storage of this storage in storage graph
      */
-    private T parent;
+    private StorageConfig parent;
 
     /**
      * List of children storage belonging to this storage
      */
-    private List<T> children;
+    private List<StorageConfig> children;
 
     /**
      * Host address of storage
@@ -67,7 +67,7 @@ public abstract class StorageConfig<T extends StorageConfig> {
      * @param password password credential
      * @since 1.0
      */
-    public StorageConfig(String id, String engine, T parent, String host, String port, String database, String username, String password) {
+    public StorageConfig(String id, String engine, StorageConfig parent, String host, String port, String database, String username, String password) {
 
         this.id = id;
         this.engine = engine;
@@ -174,7 +174,7 @@ public abstract class StorageConfig<T extends StorageConfig> {
      * @return parent storage of this storage in storage graph
      * @since 1.0
      */
-    public T getParent(){
+    public StorageConfig getParent(){
         return this.parent;
     }
 
@@ -184,7 +184,7 @@ public abstract class StorageConfig<T extends StorageConfig> {
      * @param child child storage belonging to this storage
      * @since 1.0
      */
-    public void addChild(T child){
+    public void addChild(StorageConfig child){
         this.children.add(child);
     }
 
@@ -194,8 +194,36 @@ public abstract class StorageConfig<T extends StorageConfig> {
      * @return list of children storage belonging to this storage
      * @since 1.0
      */
-    public List<T> getChildren(){
+    public List<StorageConfig> getChildren(){
         return this.children;
     }
+
+    /**
+     * Searches for the named collection in the storage configuration
+     *
+     * @param collectionName name of the collection
+     * @return true if storage contains a collection with specified name, false otherwise
+     * @since 1.0
+     */
+    public abstract boolean containsCollection(String collectionName);
+
+    /**
+     * Searches for an attribute in the named collection
+     *
+     * @param collectionName name of the collection
+     * @param attributeName name of the attribute to search for
+     * @return true if collection has the attribute, false otherwise
+     * @since 1.0
+     */
+    public abstract boolean containsAttribute(String collectionName, String attributeName);
+
+    /**
+     * Get primary key of the name collection
+     *
+     * @param collectionName name of the collection
+     * @return name of the attribute which is primary key of the named collection
+     * @since 1.0
+     */
+    public abstract String getPrimaryKey(String collectionName);
 
 }
