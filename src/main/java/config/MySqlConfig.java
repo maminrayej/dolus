@@ -53,8 +53,6 @@ public class MySqlConfig extends StorageConfig {
         this.tablesInfo = tablesInfo;
         this.primaryKeys = primaryKeys;
 
-        Log.log(String.format("MySQL Storage: %s is registered with parent: %s", id, parent.getId()), componentName, Log.INFORMATION);
-
     }
 
     /**
@@ -79,15 +77,12 @@ public class MySqlConfig extends StorageConfig {
         this.tablesInfo = tablesInfo;
         this.primaryKeys = primaryKeys;
 
-        Log.log(String.format("MySQL Storage: %s is registered", id), componentName, Log.INFORMATION);
-
     }
 
     @Override
     public boolean containsAttribute(String collectionName, String attributeName) {
 
         if (!tablesInfo.containsKey(collectionName)) {
-            Log.log(String.format("Table %s is not defined in MySQL storage", collectionName), componentName, Log.ERROR);
             return false;
         }
 
@@ -96,11 +91,6 @@ public class MySqlConfig extends StorageConfig {
 
     @Override
     public String getPrimaryKey(String collectionName) {
-
-        if (!primaryKeys.containsKey(collectionName)) {
-            Log.log(String.format("Table %s is not defined in MySQL storage", collectionName), componentName, Log.ERROR);
-            return null;
-        }
 
         return primaryKeys.get(collectionName);
     }
