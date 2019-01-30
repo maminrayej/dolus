@@ -1,5 +1,5 @@
 {
-  "storages"  : [
+  "storage"  : [
     {
       "id"      : "mysqldb",
       "type"    : "mysql",
