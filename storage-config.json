@@ -46,7 +46,7 @@
     {
       "id"          : "mongo",
       "parent"      : "mysqldb",
-      "type"        : "mongo",
+      "type"        : "mongodb",
       "engine"      : "apache_drill",
       "host"        : "loaclhost",
       "port"        : "3306",
