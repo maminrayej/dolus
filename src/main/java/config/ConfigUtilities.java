@@ -9,6 +9,7 @@ import org.json.simple.parser.ParseException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * This class is responsible for reading and parsing the config files of Dolus
@@ -552,6 +553,42 @@ public class ConfigUtilities {
                 return false;
 
         return true;
+    }
+
+    /**
+     * Searches among registered storage systems to find one containing the named collection
+     *
+     * @param collectionName name of the collection
+     * @return storage containing the named collection if found, null otherwise
+     * @since 1.0
+     */
+    public StorageConfig findStorage(String collectionName){
+
+        if (!this.storageConfigLoaded){
+            Log.log("Storage config is not loaded. can not search for collections", componentName, Log.ERROR);
+            return null;
+        }
+
+        StorageConfig foundStorage = null;
+
+        //queue is used to walk through storage graph and visit top level storage systems first
+        ArrayBlockingQueue<StorageConfig> queue = new ArrayBlockingQueue<>(1);
+
+        queue.addAll(this.storageConfigList);
+
+        while (!queue.isEmpty()){
+
+            StorageConfig current = queue.remove();
+
+            if (current.containsCollection(collectionName)) {
+                foundStorage = current;
+                break;
+            }
+
+            queue.addAll(current.getChildren());
+        }
+
+        return foundStorage;
     }
 
 }
