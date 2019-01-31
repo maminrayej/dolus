@@ -36,7 +36,7 @@ public class MongoDBConfig extends StorageConfig {
      * @param primaryKeys mapping between collection names and their primary keys
      * @param id          unique identifier of this storage
      * @param engine      engine to use when querying data of this storage
-     * @param parent      parent of this storage in storage graph
+     * @param parentId    parent id of this storage in storage graph
      * @param host        host address
      * @param port        port number
      * @param database    database name
@@ -45,9 +45,9 @@ public class MongoDBConfig extends StorageConfig {
      * @since 1.0
      */
     public MongoDBConfig(HashSet<String> collections, HashMap<String,String> primaryKeys,
-                         String id, String engine, StorageConfig parent, String host, String port, String database, String username, String password) {
+                         String id, String engine, String parentId, String host, String port, String database, String username, String password) {
 
-        super(id, engine, parent, host, port, database, username, password);
+        super(id, engine, parentId, host, port, database, username, password);
         this.collections = collections;
         this.primaryKeys = primaryKeys;
 

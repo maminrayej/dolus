@@ -37,7 +37,7 @@ public class MySqlConfig extends StorageConfig {
      * @param primaryKeys mapping between table names and their primary keys
      * @param id          unique identifier of this storage
      * @param engine      engine to use when querying data of this storage
-     * @param parent      parent of this storage in storage graph
+     * @param parentId    parent id of this storage in storage graph
      * @param host        host address of storage
      * @param port        port number of storage
      * @param database    database name
@@ -46,9 +46,9 @@ public class MySqlConfig extends StorageConfig {
      * @since 1.0
      */
     public MySqlConfig(HashMap<String, HashSet<String>> tablesInfo, HashMap<String, String> primaryKeys,
-                       String id, String engine, StorageConfig parent, String host, String port, String database, String username, String password) {
+                       String id, String engine, String parentId, String host, String port, String database, String username, String password) {
 
-        super(id, engine, parent, host, port, database, username, password);
+        super(id, engine, parentId, host, port, database, username, password);
 
         this.tablesInfo = tablesInfo;
         this.primaryKeys = primaryKeys;
