@@ -159,7 +159,8 @@ public class GeneratorListener extends MySqlParserBaseListener {
      */
     private String generateAliasAttribute(String tableName, String alias, String attribute){
 
-        //check whether table is in MySQL or not
+        return null;
+        /*//check whether table is in MySQL or not
         boolean isMySqlTable = mySqlConfig.containsTable(tableName.toLowerCase());
 
         //check whether attribute is in MySQL or not
@@ -189,7 +190,7 @@ public class GeneratorListener extends MySqlParserBaseListener {
             database = mongoDBConfig.getDatabase();
         }
 
-        return String.format("%s_%s_%s_%s", engine, database, tableName.toLowerCase(), alias.toLowerCase());
+        return String.format("%s_%s_%s_%s", engine, database, tableName.toLowerCase(), alias.toLowerCase());*/
     }
 }
 
