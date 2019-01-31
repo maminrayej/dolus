@@ -28,29 +28,29 @@ public class ConfigUtilities {
     /**
      * Path to the storage config file
      */
-    private String storageConfigDir;
+    private static String storageConfigDir;
 
     /**
      * Path to log file using by logging system
      */
-    private String logDir;
+    private static String logDir;
 
     /**
      * List of all storage systems present in storage config
      * this list actually contains just top level storage systems
      * child storage systems can be access through their parents.
      */
-    private List<StorageConfig> storageConfigList;
+    private static List<StorageConfig> storageConfigList;
 
     /**
      * Flag indicates whether main config file loaded successfully or not
      */
-    private boolean mainConfigLoaded = false;
+    private static boolean mainConfigLoaded = false;
 
     /**
      * Flag indicates whether storage config file loaded successfully or not
      */
-    private boolean storageConfigLoaded = false;
+    private static boolean storageConfigLoaded = false;
 
     /**
      * Loads the main config file
@@ -59,7 +59,7 @@ public class ConfigUtilities {
      * @return true if loading configuration was successful, false otherwise
      * @since 1.0
      */
-    public boolean loadMainConfig(String configDir) {
+    public static boolean loadMainConfig(String configDir) {
 
         File configFile = new File(configDir);
 
@@ -82,14 +82,14 @@ public class ConfigUtilities {
         Log.log("Contents of the main config file read successfully", componentName, Log.INFORMATION);
 
         //parse config content and extract configurations
-        this.mainConfigLoaded = parseMainConfigFileContents(configContent);
+        mainConfigLoaded = parseMainConfigFileContents(configContent);
 
-        if (this.mainConfigLoaded)
+        if (mainConfigLoaded)
             Log.log("Contents of the main config file parsed and stored successfully", componentName, Log.INFORMATION);
         else
             Log.log("Storing main configuration failed", componentName, Log.ERROR);
 
-        return this.mainConfigLoaded;
+        return mainConfigLoaded;
     }
 
     /**
@@ -98,14 +98,14 @@ public class ConfigUtilities {
      * @return true if loading configuration was successful, false otherwise
      * @since 1.0
      */
-    public boolean loadStorageConfig() {
+    public static boolean loadStorageConfig() {
 
-        if (!this.mainConfigLoaded) {
+        if (!mainConfigLoaded) {
             Log.log("Main config file is not loaded. can not load storage config file", componentName, Log.ERROR);
             return false;
         }
 
-        File configFile = new File(this.storageConfigDir);
+        File configFile = new File(storageConfigDir);
 
         //check whether config file exists and dolus has read permission
         if (!configFile.exists()) {
@@ -127,17 +127,17 @@ public class ConfigUtilities {
         Log.log("Contents of the storage config file loaded successfully", componentName, Log.INFORMATION);
 
         //initialize storage config list
-        this.storageConfigList = new ArrayList<>();
+        storageConfigList = new ArrayList<>();
 
         //parse config content and extract configurations
-        this.storageConfigLoaded = parseStorageConfigFileContents(configContent, this.storageConfigList);
+        storageConfigLoaded = parseStorageConfigFileContents(configContent, storageConfigList);
 
-        if (this.storageConfigLoaded)
+        if (storageConfigLoaded)
             Log.log("Contents of the storage config file parsed and stored successfully", componentName, Log.INFORMATION);
         else
             Log.log("Storing storage configuration failed", componentName, Log.ERROR);
 
-        return this.storageConfigLoaded;
+        return storageConfigLoaded;
     }
 
     /**
@@ -147,7 +147,7 @@ public class ConfigUtilities {
      * @return true if parsing was successful, false otherwise
      * @since 1.0
      */
-    private boolean parseMainConfigFileContents(String configContent) {
+    private static boolean parseMainConfigFileContents(String configContent) {
 
         //initialize a json parser
         JSONParser parser = new JSONParser();
@@ -157,17 +157,17 @@ public class ConfigUtilities {
             JSONObject root = (JSONObject) parser.parse(configContent);
 
             //get directory of the storage config file
-            this.storageConfigDir = (String) root.get("storage_config_dir");
+            storageConfigDir = (String) root.get("storage_config_dir");
             //make sure storage config dir is specified
-            if (this.storageConfigDir == null || this.storageConfigDir.length() == 0) {
+            if (storageConfigDir == null || storageConfigDir.length() == 0) {
                 Log.log("storage_config_dir is not specified in main config file", componentName, Log.ERROR);
                 return false;
             }
 
             //get directory of the log file
-            this.logDir = (String) root.get("log_dir");
+            logDir = (String) root.get("log_dir");
             //make sure log dir is specified
-            if (this.logDir == null || this.logDir.length() == 0){
+            if (logDir == null || logDir.length() == 0){
                 Log.log("log_dir is not specified in main config file", componentName, Log.ERROR);
                 return false;
             }
@@ -190,7 +190,7 @@ public class ConfigUtilities {
      * @return true if parsing was successful and meta data stored successfully, false otherwise
      * @since 1.0
      */
-    private boolean parseStorageConfigFileContents(String configContent, List<StorageConfig> storageConfigList) {
+    private static boolean parseStorageConfigFileContents(String configContent, List<StorageConfig> storageConfigList) {
 
         //initialize a json parser
         JSONParser parser = new JSONParser();
@@ -298,7 +298,7 @@ public class ConfigUtilities {
      * @return true if parsing and storing meta data and configurations was successful, false otherwise
      * @since 1.0
      */
-    private MySqlConfig parseMySQLConfig(JSONObject mySqlConfigObject) {
+    private static MySqlConfig parseMySQLConfig(JSONObject mySqlConfigObject) {
 
         //storage configurations
         String id;
@@ -427,7 +427,7 @@ public class ConfigUtilities {
      * @return true if parsing and storing meta data and configurations was successful
      * @since 1.0
      */
-    private MongoDBConfig parseMongoDBConfig(JSONObject mongoDBConfigObject) {
+    private static MongoDBConfig parseMongoDBConfig(JSONObject mongoDBConfigObject) {
 
         //storage configurations
         String id;
@@ -536,7 +536,7 @@ public class ConfigUtilities {
      * @return contents of the config file or null if an error occurs
      * @since 1.0
      */
-    private String readConfigFileContents(File configFile) {
+    private static String readConfigFileContents(File configFile) {
 
         try {
 
@@ -561,7 +561,7 @@ public class ConfigUtilities {
      * @return true if string is a valid integer, false otherwise
      * @since 1.0
      */
-    private boolean isInteger(String integer) {
+    private static boolean isInteger(String integer) {
 
         for (int i = 0; i < integer.length(); i++)
             if (!Character.isDigit(integer.charAt(i)))
@@ -577,9 +577,9 @@ public class ConfigUtilities {
      * @return storage containing the named collection if found, null otherwise
      * @since 1.0
      */
-    public StorageConfig findStorage(String collectionName){
+    public static StorageConfig findStorage(String collectionName){
 
-        if (!this.storageConfigLoaded){
+        if (!storageConfigLoaded){
             Log.log("Storage config is not loaded. can not search for collections", componentName, Log.ERROR);
             return null;
         }
@@ -589,7 +589,7 @@ public class ConfigUtilities {
         //queue is used to walk through storage graph and visit top level storage systems first
         ArrayBlockingQueue<StorageConfig> queue = new ArrayBlockingQueue<>(1);
 
-        queue.addAll(this.storageConfigList);
+        queue.addAll(storageConfigList);
 
         while (!queue.isEmpty()){
 
