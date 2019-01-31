@@ -1,6 +1,6 @@
 {
 
-	"storage_config_dir"	:	"/home/amin/programming/projects/dolus/storage-config.json"
+	"storage_config_dir"	:	"/home/amin/programming/projects/dolus/storage-config.json",
 	"log_dir"		:	"/home/amin/programming/projects/dolus/dolus.log"
 
 }
