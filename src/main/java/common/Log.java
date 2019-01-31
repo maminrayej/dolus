@@ -15,7 +15,10 @@ import java.util.Date;
  */
 public class Log {
 
-    private static final String logDir = "/home/amin/programming/projects/java/Dolus/dolus.log";
+    /**
+     * Path to log file
+     */
+    private static String logDir = null;
 
     /**
      * For errors and exceptions happen in dolus
@@ -47,13 +50,19 @@ public class Log {
      */
     public static void log(String msg, String componentName, int type) {
 
+        //check whether log file is configured or not
+        if (logDir == null){
+            System.out.println("Log file is not configured");
+            return;
+        }
         //point to the log file
         File logFile = new File(logDir);
 
         //check whether file exists or not
-        if (!logFile.exists())
+        if (!logFile.exists()) {
             System.out.println("Log file does not exist");
-
+            return;
+        }
         //set date and time format to yyyy-MM-dd HH:mm:ss
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -86,6 +95,16 @@ public class Log {
             System.out.println("Something went wrong during logging the message");
         }
 
+    }
+
+    /**
+     * Sets log dir property
+     *
+     * @param logDir path to log file
+     * @since 1.0
+     */
+    public void setLogDir(String logDir){
+        Log.logDir = logDir;
     }
 
 
