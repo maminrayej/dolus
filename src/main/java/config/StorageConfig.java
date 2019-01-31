@@ -18,6 +18,11 @@ public abstract class StorageConfig {
     private String id;
 
     /**
+     * Unique parent id of this storage
+     */
+    private String parentId;
+
+    /**
      * Engine to use when querying data of the storage
      */
     private String engine;
@@ -59,7 +64,7 @@ public abstract class StorageConfig {
      *
      * @param id       unique identifier of this storage
      * @param engine   engine to use when querying data of this storage
-     * @param parent   parent of this storage in storage graph
+     * @param parentId parent id of this storage in storage graph
      * @param host     host address of storage
      * @param port     port number of storage
      * @param database storage name
@@ -67,11 +72,11 @@ public abstract class StorageConfig {
      * @param password password credential
      * @since 1.0
      */
-    public StorageConfig(String id, String engine, StorageConfig parent, String host, String port, String database, String username, String password) {
+    public StorageConfig(String id, String engine, String parentId, String host, String port, String database, String username, String password) {
 
         this.id = id;
         this.engine = engine;
-        this.parent = parent;
+        this.parentId = parentId;
         this.host = host;
         this.port = port;
         this.database = database;
@@ -159,6 +164,16 @@ public abstract class StorageConfig {
     }
 
     /**
+     * Parent id of this storage
+     *
+     * @return id of parent storage
+     * @since 1.0
+     */
+    public String getParentId(){
+        return this.parentId;
+    }
+
+    /**
      * Query Engine
      *
      * @return engine name to use when querying data of this storage
@@ -176,6 +191,16 @@ public abstract class StorageConfig {
      */
     public StorageConfig getParent(){
         return this.parent;
+    }
+
+    /**
+     * Set parent storage
+     *
+     * @param storageConfig parent of this storage in storage graph
+     * @since 1.0
+     */
+    public void setParent(StorageConfig storageConfig){
+        this.parent = storageConfig;
     }
 
     /**
