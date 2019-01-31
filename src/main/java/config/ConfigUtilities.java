@@ -31,6 +31,11 @@ public class ConfigUtilities {
     private String storageConfigDir;
 
     /**
+     * Path to log file using by logging system
+     */
+    private String logDir;
+
+    /**
      * List of all storage systems present in storage config
      * this list actually contains just top level storage systems
      * child storage systems can be access through their parents.
@@ -153,12 +158,20 @@ public class ConfigUtilities {
 
             //get directory of the storage config file
             this.storageConfigDir = (String) root.get("storage_config_dir");
-
             //make sure storage config dir is specified
             if (this.storageConfigDir == null || this.storageConfigDir.length() == 0) {
                 Log.log("storage_config_dir is not specified in main config file", componentName, Log.ERROR);
                 return false;
             }
+
+            //get directory of the log file
+            this.logDir = (String) root.get("log_dir");
+            //make sure log dir is specified
+            if (this.logDir == null || this.logDir.length() == 0){
+                Log.log("log_dir is not specified in main config file", componentName, Log.ERROR);
+                return false;
+            }
+
         } catch (ParseException e) {
             Log.log("Can not parse contents of the main config file", componentName, Log.ERROR);
             return false;
