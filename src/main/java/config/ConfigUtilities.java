@@ -171,6 +171,8 @@ public class ConfigUtilities {
                 Log.log("log_dir is not specified in main config file", componentName, Log.ERROR);
                 return false;
             }
+            //configure logging directory
+            Log.setLogDir(logDir);
 
         } catch (ParseException e) {
             Log.log("Can not parse contents of the main config file", componentName, Log.ERROR);

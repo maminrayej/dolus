@@ -103,7 +103,7 @@ public class Log {
      * @param logDir path to log file
      * @since 1.0
      */
-    public void setLogDir(String logDir){
+    public static void setLogDir(String logDir){
         Log.logDir = logDir;
     }
 
