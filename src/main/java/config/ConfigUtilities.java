@@ -8,12 +8,10 @@ import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Scanner;
+import java.util.*;
 
 /**
- * This class is responsible for reading and parsing the config file of Dolus
+ * This class is responsible for reading and parsing the config files of Dolus
  *
  * @author m.amin rayej
  * @version 1.0
@@ -22,202 +20,343 @@ import java.util.Scanner;
 public class ConfigUtilities {
 
     /**
-     * Directory of the configuration file
+     * Component name to use in logging system
      */
-    private static final String configDir = "/home/amin/programming/projects/java/Dolus/config.json";
-
     private static final String componentName = "ConfigUtilities";
 
     /**
-     * Structure that stores MySQL meta data and configurations
+     * Path to the storage config file
      */
-    private MySqlConfig mySqlConfig;
+    private String storageConfigDir;
 
     /**
-     * Structure that stores MongoDB meta data and configuration
+     * List of all storage systems present in storage config
+     * this list actually contains just top level storage systems
+     * child storage systems can be access through their parents.
      */
-    private MongoDBConfig mongoDBConfig;
+    private List<StorageConfig> storageConfigList;
 
     /**
-     * Loads the config file and reads the contents.
+     * Flag indicates whether main config file loaded successfully or not
+     */
+    private boolean mainConfigLoaded = false;
+
+    /**
+     * Flag indicates whether storage config file loaded successfully or not
+     */
+    private boolean storageConfigLoaded = false;
+
+    /**
+     * Loads the main config file
      *
+     * @param configDir path to main config file
      * @return true if loading configuration was successful, false otherwise
      * @since 1.0
      */
-    public boolean loadConfig() {
+    public boolean loadMainConfig(String configDir) {
 
-        //open config file and check for reading permission
         File configFile = new File(configDir);
 
+        //check whether config file exists and dolus has read permission
         if (!configFile.exists()) {
-            Log.log("Config file can not be located", componentName, Log.ERROR);
+            Log.log("Main config file can not be located", componentName, Log.ERROR);
             return false;
         } else if (!configFile.canRead()) {
-            Log.log("Dolus does not have permission to read the config file", componentName, Log.ERROR);
+            Log.log("Dolus does not have permission to read the main config file", componentName, Log.ERROR);
             return false;
         }
 
         //read contents of the config file
-        String configContent = readConfigContents(configFile);
-        if (configContent == null)
+        String configContent = readConfigFileContents(configFile);
+        if (configContent == null) {
+            Log.log("Something went wrong during reading contents of the main configuration file", componentName, Log.ERROR);
             return false;
-
-        //parse config content and extract configurations
-        return parseConfigContent(configContent);
-
-    }
-
-    /**
-     * Reads content of the config file
-     *
-     * @param configFile configuration file
-     * @return contents of the config file or null if an error occurs
-     * @since 1.0
-     */
-    private String readConfigContents(File configFile) {
-
-        try {
-
-            Scanner scanner = new Scanner(configFile);
-
-            StringBuilder content = new StringBuilder();
-
-            while (scanner.hasNextLine())
-                content.append(scanner.nextLine());
-
-            return content.toString();
-        } catch (FileNotFoundException e) {
-            Log.log("Dolus can not open the config file", componentName, Log.ERROR);
-            return null;
         }
 
+        Log.log("Contents of the main config file read successfully", componentName, Log.INFORMATION);
+
+        //parse config content and extract configurations
+        this.mainConfigLoaded = parseMainConfigFileContents(configContent);
+
+        if (this.mainConfigLoaded)
+            Log.log("Contents of the main config file parsed and stored successfully", componentName, Log.INFORMATION);
+        else
+            Log.log("Storing main configuration failed", componentName, Log.ERROR);
+
+        return this.mainConfigLoaded;
     }
 
     /**
-     * Parses contents of the config file and stores extracted database metadata as a structure
+     * Loads the storage config file
      *
-     * @param configContent contents of the
-     * @return true if parsing was successful and meta data stored successfully, false otherwise
+     * @return true if loading configuration was successful, false otherwise
      * @since 1.0
      */
-    private boolean parseConfigContent(String configContent) {
+    public boolean loadStorageConfig() {
+
+        if (!this.mainConfigLoaded) {
+            Log.log("Main config file is not loaded. can not load storage config file", componentName, Log.ERROR);
+            return false;
+        }
+
+        File configFile = new File(this.storageConfigDir);
+
+        //check whether config file exists and dolus has read permission
+        if (!configFile.exists()) {
+            Log.log("Storage config file can not be located", componentName, Log.ERROR);
+            return false;
+        } else if (!configFile.canRead()) {
+            Log.log("Dolus does not have permission to read the storage config file", componentName, Log.ERROR);
+            return false;
+        }
+
+        //read contents of the config file
+        String configContent = readConfigFileContents(configFile);
+        if (configContent == null) {
+
+            Log.log("Something went wrong during reading contents of the storage configuration file", componentName, Log.ERROR);
+            return false;
+        }
+
+        Log.log("Contents of the storage config file loaded successfully", componentName, Log.INFORMATION);
+
+        //initialize storage config list
+        this.storageConfigList = new ArrayList<>();
+
+        //parse config content and extract configurations
+        this.storageConfigLoaded = parseStorageConfigFileContents(configContent, this.storageConfigList);
+
+        if (this.storageConfigLoaded)
+            Log.log("Contents of the storage config file parsed and stored successfully", componentName, Log.INFORMATION);
+        else
+            Log.log("Storing storage configuration failed", componentName, Log.ERROR);
+
+        return this.storageConfigLoaded;
+    }
+
+    /**
+     * Parses contents of the main config file
+     *
+     * @param configContent contents of the main config file
+     * @return true if parsing was successful, false otherwise
+     * @since 1.0
+     */
+    private boolean parseMainConfigFileContents(String configContent) {
 
         //initialize a json parser
         JSONParser parser = new JSONParser();
 
         try {
-            //get root object of json file
+            //get root object of the json file
             JSONObject root = (JSONObject) parser.parse(configContent);
 
-            //get database vendors
-            JSONArray vendors = (JSONArray) root.get("vendors");
+            //get directory of the storage config file
+            this.storageConfigDir = (String) root.get("storage_config_dir");
 
-            //check that at least two vendors are defined
-            if (vendors == null || vendors.size() < 2) {
-                Log.log("At least two vendor must be specified in config file", componentName, Log.ERROR);
+            //make sure storage config dir is specified
+            if (this.storageConfigDir == null || this.storageConfigDir.length() == 0) {
+                Log.log("storage_config_dir is not specified in main config file", componentName, Log.ERROR);
                 return false;
             }
-
-            //for each vendor, call its appropriate parser
-            for (Object vendorObject : vendors) {
-
-                JSONObject vendor = (JSONObject) vendorObject;
-
-                //get vendor name
-                String vendorName = (String) vendor.get("vendor");
-
-                //check whether vendor name attribute is specified
-                if (vendorName == null || vendorName.length() == 0) {
-                    Log.log("Vendor name is not specified for one the vendors", componentName, Log.ERROR);
-                    return false;
-                }
-
-                //call vendor specific parser
-                if (vendorName.equalsIgnoreCase("MySQL")) {
-                    boolean result = parseMySQLConfig(vendor);
-                    if (!result)
-                        return false;
-                } else if (vendorName.equalsIgnoreCase("MongoDB")) {
-                    boolean result = parseMongoDBConfig(vendor);
-                    if (!result)
-                        return false;
-                }
-            }
-
         } catch (ParseException e) {
-            Log.log("Could not parse the config file", componentName, Log.ERROR);
+            Log.log("Can not parse contents of the main config file", componentName, Log.ERROR);
             return false;
         }
 
         return true;
+    }
 
+
+    /**
+     * Parses contents of the storage config file and stores extracted storage metadata
+     *
+     * @param configContent contents of the storage config file
+     * @return true if parsing was successful and meta data stored successfully, false otherwise
+     * @since 1.0
+     */
+    private boolean parseStorageConfigFileContents(String configContent, List<StorageConfig> storageConfigList) {
+
+        //initialize a json parser
+        JSONParser parser = new JSONParser();
+
+        /*
+        * once scanning the storage config file is not enough to link parent and child storage systems
+        * because storage systems can appear in arbitrary orders in storage config file
+        * therefore parser store top level(parent) storage systems separately from child storage systems
+        * then loops through the child storage systems and link each child to its parent
+        * parents are stored in a hash map structure to be found fast
+        * children are stored in a list
+        * */
+        //Hash map of top level storage systems: storage id -> storage object
+        HashMap<String, StorageConfig> topLevelStorageSystems = new HashMap<>();
+
+        //List of storage systems having parents
+        ArrayList<StorageConfig> children = new ArrayList<>();
+
+        try {
+            //get root object of json file
+            JSONObject root = (JSONObject) parser.parse(configContent);
+
+            //get array storage systems
+            JSONArray storageArray = (JSONArray) root.get("storage");
+
+            //make sure at least one storage is defined
+            if (storageArray == null || storageArray.size() < 1) {
+                Log.log("At least one storage must be specified in storage config file", componentName, Log.ERROR);
+                return false;
+            }
+
+            //for each storage system, call its appropriate parser
+            for (Object storageObject : storageArray) {
+
+                JSONObject storage = (JSONObject) storageObject;
+
+                //get storage type
+                String storageType = (String) storage.get("type");
+
+                //make sure that storage type attribute is specified
+                if (storageType == null || storageType.length() == 0) {
+                    Log.log("Storage type is not specified for one of the storage systems", componentName, Log.ERROR);
+                    return false;
+                }
+
+                if (storageType.equals("mysql")) {
+                    MySqlConfig mySqlConfig = parseMySQLConfig(storage);
+                    if (mySqlConfig == null) {
+                        Log.log("Parsing MySQL storage config failed", componentName, Log.ERROR);
+                        return false;
+                    }
+                    //check whether storage is top level or not
+                    if (mySqlConfig.getParentId() == null) {
+                        topLevelStorageSystems.put(mySqlConfig.getId(), mySqlConfig);
+                        storageConfigList.add(mySqlConfig);
+                    } else
+                        children.add(mySqlConfig);
+                } else if (storageType.equals("mongodb")) {
+                    MongoDBConfig mongoDBConfig = parseMongoDBConfig(storage);
+                    if (mongoDBConfig == null) {
+                        Log.log("Parsing MongoDB storage config failed", componentName, Log.ERROR);
+                        return false;
+                    }
+                    //check whether storage is top level or not
+                    if (mongoDBConfig.getParentId() == null) {
+                        topLevelStorageSystems.put(mongoDBConfig.getId(), mongoDBConfig);
+                        storageConfigList.add(mongoDBConfig);
+                    } else children.add(mongoDBConfig);
+                }
+
+            }
+
+        } catch (ParseException e) {
+            Log.log("Can not parse contents of the storage config file", componentName, Log.ERROR);
+            return false;
+        }
+
+        //create storage graph by connecting child and parent storage systems together
+        for (StorageConfig child : children) {
+
+            String parentId = child.getParentId();
+
+            //find parent storage among top level storage systems
+            StorageConfig parent = topLevelStorageSystems.get(parentId);
+
+            //check whether parent id really exists
+            if (parent == null) {
+                Log.log("Parent id: %s defined by storage: %s does not exist in storage config file", componentName, Log.ERROR);
+                return false;
+            }
+
+            parent.addChild(child);
+
+            child.setParent(parent);
+
+        }
+
+        return true;
     }
 
     /**
      * Extract MySQL meta data and configurations
      *
      * @param mySqlConfigObject json object that contains MySQL meta data and configurations
-     * @return true if parsing and storing meta data and configurations was successful
+     * @return true if parsing and storing meta data and configurations was successful, false otherwise
      * @since 1.0
      */
-    private boolean parseMySQLConfig(JSONObject mySqlConfigObject) {
+    private MySqlConfig parseMySQLConfig(JSONObject mySqlConfigObject) {
 
-        //configurations
+        //storage configurations
+        String id;
+        String parentId;
+        String engine;
         String host;
         String port;
         String database;
         String username;
         String password;
 
-        //meta data
-        HashMap<String, HashSet<String>> tablesInfo = new HashMap<>();//map each table with its column set
-        HashMap<String, String> primaryKeys = new HashMap<>();//map each table with its primary key
+        //storage meta data
+        HashMap<String, HashSet<String>> tablesInfo = new HashMap<>();//map each table with its column set: table name -> [column1 ,column2, ...]
+        HashMap<String, String> primaryKeys = new HashMap<>();//map tables with their primary keys: table name -> primary key
 
         //configuration extraction
+        parentId = (String) mySqlConfigObject.get("parent");
+
+        id = (String) mySqlConfigObject.get("id");
+        if (id == null || id.length() == 0) {
+            Log.log("MySQL id attribute is not defined", componentName, Log.ERROR);
+            return null;
+        }
+
+        engine = (String) mySqlConfigObject.get("engine");
+        if (engine == null || engine.length() == 0) {
+            Log.log("MySQL engine attribute is not defined", componentName, Log.ERROR);
+            return null;
+        }
+
         host = (String) mySqlConfigObject.get("host");
         if (host == null || host.length() == 0) {
             Log.log("MySQL host attribute is not defined", componentName, Log.ERROR);
-            return false;
+            return null;
         }
 
         port = (String) mySqlConfigObject.get("port");
         if (port == null || port.length() == 0 || !isInteger(port)) {
             Log.log("MySQL port attribute is not defined or is not a valid integer number", componentName, Log.ERROR);
-            return false;
+            return null;
         }
 
         database = (String) mySqlConfigObject.get("database");
         if (database == null || database.length() == 0) {
             Log.log("MySQL database name attribute is not defined", componentName, Log.ERROR);
-            return false;
+            return null;
         }
 
         username = (String) mySqlConfigObject.get("username");
         if (username == null || username.length() == 0) {
             Log.log("MySQL username attribute is not defined", componentName, Log.ERROR);
-            return false;
+            return null;
         }
 
         password = (String) mySqlConfigObject.get("password");
         if (password == null || password.length() == 0) {
             Log.log("MySQL password attribute is not defined", componentName, Log.ERROR);
-            return false;
+            return null;
         }
 
         //meta data extraction
         JSONArray tables = (JSONArray) mySqlConfigObject.get("tables");
         if (tables == null || tables.size() == 0) {
-            Log.log("MySQL tables attribute is not defined or it does not contain any tables", componentName, Log.ERROR);
-            return false;
+            Log.log("MySQL tables attribute is not defined or it does not contain any table", componentName, Log.ERROR);
+            return null;
         }
 
         //meta data holders
-        JSONObject table;
-        String tableName;
-        String primaryKey;
-        JSONArray columns;
-        HashSet<String> columnsSet;
-        String column;
+        JSONObject table;//contains data about current table
+        JSONArray columns;//contains data about column of current table
+        HashSet<String> columnsSet;//set containing all columns of current table
+        String column;//name of current column
+        String tableName;//name of current table
+        String primaryKey;//primary key of current table
 
         //for each table, extract its meta data and store it
         for (Object tableObject : tables) {
@@ -230,19 +369,19 @@ public class ConfigUtilities {
             tableName = (String) table.get("name");
             if (tableName == null || tableName.length() == 0) {
                 Log.log("MySQL table name attribute is not defined for one of its tables", componentName, Log.ERROR);
-                return false;
+                return null;
             }
 
             primaryKey = (String) table.get("pk");
             if (primaryKey == null || primaryKey.length() == 0) {
                 Log.log("MySQL primary key(pk) attribute is not defined for one of its tables", componentName, Log.ERROR);
-                return false;
+                return null;
             }
 
             columns = (JSONArray) table.get("columns");
             if (columns == null || columns.size() == 0) {
                 Log.log("MySQL columns attribute is not defined for one of its table or the table does not contain any columns", componentName, Log.ERROR);
-                return false;
+                return null;
             }
 
             //extract column names and add them to the column set
@@ -262,9 +401,7 @@ public class ConfigUtilities {
         }
 
         //initialize MySQL configuration container with extracted data
-        this.mySqlConfig = new MySqlConfig(tablesInfo, primaryKeys, host, port, database, username, password);
-
-        return true;
+        return new MySqlConfig(tablesInfo, primaryKeys, id, engine, parentId, host, port, database, username, password);
     }
 
     /**
@@ -274,60 +411,76 @@ public class ConfigUtilities {
      * @return true if parsing and storing meta data and configurations was successful
      * @since 1.0
      */
-    private boolean parseMongoDBConfig(JSONObject mongoDBConfigObject) {
+    private MongoDBConfig parseMongoDBConfig(JSONObject mongoDBConfigObject) {
 
-        //configurations
+        //storage configurations
+        String id;
+        String parentId;
+        String engine;
         String host;
         String port;
         String database;
         String username;
         String password;
 
-        //meta data
+        //storage meta data
         HashSet<String> collections = new HashSet<>();//set of all collection names in mongodb database
-        HashMap<String,String> primaryKeys = new HashMap<>();//map each collection name with its primary key
+        HashMap<String, String> primaryKeys = new HashMap<>();//map each collection name with its primary key
 
         //configuration extraction
+        parentId = (String) mongoDBConfigObject.get("parent");
+
+        id = (String) mongoDBConfigObject.get("id");
+        if (id == null || id.length() == 0) {
+            Log.log("MongoDB id attribute is not defined", componentName, Log.ERROR);
+            return null;
+        }
+
+        engine = (String) mongoDBConfigObject.get("engine");
+        if (engine == null || engine.length() == 0) {
+            Log.log("MongoDB engine attribute is not defined", componentName, Log.ERROR);
+            return null;
+        }
+
         host = (String) mongoDBConfigObject.get("host");
         if (host == null || host.length() == 0) {
             Log.log("MongoDB host attribute is not defined", componentName, Log.ERROR);
-            return false;
+            return null;
         }
 
         port = (String) mongoDBConfigObject.get("port");
         if (port == null || port.length() == 0 || !isInteger(port)) {
             Log.log("MongoDB port attribute is not defined or is not a valid integer number", componentName, Log.ERROR);
-            return false;
+            return null;
         }
 
         database = (String) mongoDBConfigObject.get("database");
         if (database == null || database.length() == 0) {
             Log.log("MongoDB database name attribute is not defined", componentName, Log.ERROR);
-            return false;
+            return null;
         }
 
         username = (String) mongoDBConfigObject.get("username");
         if (username == null || username.length() == 0) {
             Log.log("MongoDB username attribute is not defined", componentName, Log.ERROR);
-            return false;
+            return null;
         }
 
         password = (String) mongoDBConfigObject.get("password");
         if (password == null || password.length() == 0) {
             Log.log("MongoDB password attribute is not defined", componentName, Log.ERROR);
-            return false;
+            return null;
         }
 
         //meta data extraction
         JSONArray collectionArray = (JSONArray) mongoDBConfigObject.get("collections");
         if (collectionArray == null || collectionArray.size() == 0) {
             Log.log("MongoDB collections attribute is not defined or it does not contain any collection", componentName, Log.ERROR);
-            return false;
+            return null;
         }
 
         //meta data holders
         String collectionName;
-        String collectionPrimaryKey;
         JSONObject collection;
 
         //for each collection extract its name and primary key
@@ -340,11 +493,11 @@ public class ConfigUtilities {
 
             if (collectionName == null || collectionName.length() == 0) {
                 Log.log("MongoDB collection name attribute is not defined for one of its collections", componentName, Log.ERROR);
-                return false;
+                return null;
             }
 
             //extract collection primary key
-            collectionPrimaryKey = (String) collection.get("pk");
+            String collectionPrimaryKey = (String) collection.get("pk");
 
             //if primary key is not defined or is empty -> set it to default mongoDB primary kry : _id
             if (collectionPrimaryKey == null || collectionPrimaryKey.length() == 0)
@@ -356,29 +509,33 @@ public class ConfigUtilities {
         }
 
         //initialize MongoDB configuration container with extracted data
-        this.mongoDBConfig = new MongoDBConfig(collections, primaryKeys, host, port, database, username, password);
+        return new MongoDBConfig(collections, primaryKeys, id, engine, parentId, host, port, database, username, password);
 
-        return true;
     }
 
     /**
-     * Get MySQL configuration and meta data container
+     * Reads content of the config file
      *
-     * @return MySqlConfig container that holds configuration and meta data about MySQL database
+     * @param configFile configuration file
+     * @return contents of the config file or null if an error occurs
      * @since 1.0
      */
-    public MySqlConfig getMySqlConfig() {
-        return mySqlConfig;
-    }
+    private String readConfigFileContents(File configFile) {
 
-    /**
-     * Get MongoDB configuration and meta data container
-     *
-     * @return MongoDBConfig container that holds configuration and meta data about MongoDB database
-     * @since 1.0
-     */
-    public MongoDBConfig getMongoDBConfig() {
-        return mongoDBConfig;
+        try {
+
+            Scanner scanner = new Scanner(configFile);
+
+            StringBuilder content = new StringBuilder();
+
+            while (scanner.hasNextLine())
+                content.append(scanner.nextLine());
+
+            return content.toString();
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+
     }
 
     /**
