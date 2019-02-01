@@ -36,6 +36,16 @@ public class ConfigUtilities {
     private static String logDir;
 
     /**
+     * Available storage types
+     */
+    private static String[] storageTypes = {"mysql", "mongodb"};
+
+    /**
+     * Available query engines
+     */
+    private static String[] engines = {"apache_drill"};
+
+    /**
      * List of all storage systems present in storage config
      * this list actually contains just top level storage systems
      * child storage systems can be access through their parents.
@@ -130,7 +140,7 @@ public class ConfigUtilities {
         storageConfigList = new ArrayList<>();
 
         //parse config content and extract configurations
-        storageConfigLoaded = parseStorageConfigFileContents(configContent, storageConfigList);
+        storageConfigLoaded = parseStorageConfigFileContents(configContent, storageConfigList, storageTypes, engines);
 
         if (storageConfigLoaded)
             Log.log("Contents of the storage config file parsed and stored successfully", componentName, Log.INFORMATION);
@@ -192,7 +202,7 @@ public class ConfigUtilities {
      * @return true if parsing was successful and meta data stored successfully, false otherwise
      * @since 1.0
      */
-    private static boolean parseStorageConfigFileContents(String configContent, List<StorageConfig> storageConfigList) {
+    private static boolean parseStorageConfigFileContents(String configContent, List<StorageConfig> storageConfigList, String[] storageTypes, String[] engines) {
 
         //initialize a json parser
         JSONParser parser = new JSONParser();
@@ -238,8 +248,20 @@ public class ConfigUtilities {
                     return false;
                 }
 
+                //make sure type is valid
+                boolean isValid = false;
+                for (String validType : storageTypes)
+                    if (validType.equals(storageType)) {
+                        isValid = true;
+                        break;
+                    }
+                if (!isValid){
+                    Log.log("Specified type: " + storageType + " is not a valid storage type", componentName, Log.ERROR);
+                    return false;
+                }
+
                 if (storageType.equals("mysql")) {
-                    MySqlConfig mySqlConfig = parseMySQLConfig(storage);
+                    MySqlConfig mySqlConfig = parseMySQLConfig(storage, engines);
                     if (mySqlConfig == null) {
                         Log.log("Parsing MySQL storage config failed", componentName, Log.ERROR);
                         return false;
@@ -251,7 +273,7 @@ public class ConfigUtilities {
                     } else
                         children.add(mySqlConfig);
                 } else if (storageType.equals("mongodb")) {
-                    MongoDBConfig mongoDBConfig = parseMongoDBConfig(storage);
+                    MongoDBConfig mongoDBConfig = parseMongoDBConfig(storage, engines);
                     if (mongoDBConfig == null) {
                         Log.log("Parsing MongoDB storage config failed", componentName, Log.ERROR);
                         return false;
@@ -300,7 +322,7 @@ public class ConfigUtilities {
      * @return true if parsing and storing meta data and configurations was successful, false otherwise
      * @since 1.0
      */
-    private static MySqlConfig parseMySQLConfig(JSONObject mySqlConfigObject) {
+    private static MySqlConfig parseMySQLConfig(JSONObject mySqlConfigObject, String[] engines) {
 
         //storage configurations
         String id;
@@ -328,6 +350,18 @@ public class ConfigUtilities {
         engine = (String) mySqlConfigObject.get("engine");
         if (engine == null || engine.length() == 0) {
             Log.log("MySQL engine attribute is not defined for: " + id, componentName, Log.ERROR);
+            return null;
+        }
+
+        //make sure specified engine is valid
+        boolean isValid = false;
+        for (String validEngine : engines)
+            if (validEngine.equals(engine)){
+                isValid = true;
+                break;
+            }
+        if (!isValid){
+            Log.log("Specified engine: " + engine + " is not a valid query engine for: " + id, componentName, Log.ERROR);
             return null;
         }
 
@@ -435,7 +469,7 @@ public class ConfigUtilities {
      * @return true if parsing and storing meta data and configurations was successful
      * @since 1.0
      */
-    private static MongoDBConfig parseMongoDBConfig(JSONObject mongoDBConfigObject) {
+    private static MongoDBConfig parseMongoDBConfig(JSONObject mongoDBConfigObject, String[] engines) {
 
         //storage configurations
         String id;
@@ -463,6 +497,18 @@ public class ConfigUtilities {
         engine = (String) mongoDBConfigObject.get("engine");
         if (engine == null || engine.length() == 0) {
             Log.log("MongoDB engine attribute is not defined for: " + id, componentName, Log.ERROR);
+            return null;
+        }
+
+        //make sure specified engine is valid
+        boolean isValid = false;
+        for (String validEngine : engines)
+            if (validEngine.equals(engine)){
+                isValid = true;
+                break;
+            }
+        if (!isValid){
+            Log.log("Specified engine: " + engine + " is not a valid query engine for: " + id, componentName, Log.ERROR);
             return null;
         }
 
