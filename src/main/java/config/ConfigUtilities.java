@@ -152,34 +152,36 @@ public class ConfigUtilities {
         //initialize a json parser
         JSONParser parser = new JSONParser();
 
+        //result of parsing
+        boolean result = true;
+
         try {
             //get root object of the json file
             JSONObject root = (JSONObject) parser.parse(configContent);
-
-            //get directory of the storage config file
-            storageConfigDir = (String) root.get("storage_config_dir");
-            //make sure storage config dir is specified
-            if (storageConfigDir == null || storageConfigDir.length() == 0) {
-                Log.log("storage_config_dir is not specified in main config file", componentName, Log.ERROR);
-                return false;
-            }
 
             //get directory of the log file
             logDir = (String) root.get("log_dir");
             //make sure log dir is specified
             if (logDir == null || logDir.length() == 0){
                 Log.log("log_dir is not specified in main config file", componentName, Log.ERROR);
-                return false;
+                result = false;
+            }else
+                Log.setLogDir(logDir);//configure logging directory
+
+            //get directory of the storage config file
+            storageConfigDir = (String) root.get("storage_config_dir");
+            //make sure storage config dir is specified
+            if (storageConfigDir == null || storageConfigDir.length() == 0) {
+                Log.log("storage_config_dir is not specified in main config file", componentName, Log.ERROR);
+                result = false;
             }
-            //configure logging directory
-            Log.setLogDir(logDir);
 
         } catch (ParseException e) {
-            Log.log("Can not parse contents of the main config file", componentName, Log.ERROR);
-            return false;
+            Log.log("Can not parse contents of the main config file. Check json syntax", componentName, Log.ERROR);
+            result = false;
         }
 
-        return true;
+        return result;
     }
 
 
