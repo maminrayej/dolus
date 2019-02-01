@@ -138,8 +138,42 @@ public class ConfigUtilities {
         //initialize storage config list
         storageConfigList = new ArrayList<>();
 
+        /*
+         * once scanning the storage config file is not enough to link parent and child storage systems
+         * because storage systems can appear in arbitrary orders in storage config file
+         * therefore parser store top level(parent) storage systems separately from child storage systems
+         * then loops through the child storage systems and link each child to its parent
+         * parents are stored in a hash map structure to be found fast
+         * children are stored in a list
+         */
+        //Hash map of top level storage systems: storage id -> storage object
+        HashMap<String, StorageConfig> topLevelStorageSystems = new HashMap<>();
+
+        //List of storage systems having parents
+        ArrayList<StorageConfig> children = new ArrayList<>();
+
         //parse config content and extract configurations
-        storageConfigLoaded = ConfigParser.parseStorageConfigFileContents(configContent, storageConfigList, storageTypes, engines);
+        storageConfigLoaded = ConfigParser.parseStorageConfigFileContents(configContent, storageConfigList, storageTypes, engines, topLevelStorageSystems, children);
+
+        //create storage graph by connecting child and parent storage systems together
+        for (StorageConfig child : children) {
+
+            String parentId = child.getParentId();
+
+            //find parent storage among top level storage systems
+            StorageConfig parent = topLevelStorageSystems.get(parentId);
+
+            //check whether parent id really exists
+            if (parent == null) {
+                Log.log(String.format("Parent id: %s defined by storage: %s does not exist in storage config file", parentId, child.getId()), componentName, Log.ERROR);
+                return false;
+            }
+
+            parent.addChild(child);
+
+            child.setParent(parent);
+
+        }
 
         if (storageConfigLoaded)
             Log.log("Contents of the storage config file parsed and stored successfully", componentName, Log.INFORMATION);
