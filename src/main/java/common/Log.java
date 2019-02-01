@@ -81,7 +81,17 @@ public class Log {
 
         //check whether file exists or not
         if (!logFile.exists()) {
-            System.out.println("Log file does not exist");
+            System.out.println("Log file can not be located: " + logDir);
+            System.out.println("printing message to standard output");
+            System.out.println(String.format("[%s][%s][%s]%s\n", currentDateTime, typeStr, componentName, msg));
+            return;
+        }
+
+        //check whether dolus can write to log file or not
+        if (!logFile.canWrite()){
+            System.out.println("Dolus does not have permission to write to log file");
+            System.out.println("printing message to standard output");
+            System.out.println(String.format("[%s][%s][%s]%s\n", currentDateTime, typeStr, componentName, msg));
             return;
         }
 
