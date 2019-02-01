@@ -65,7 +65,7 @@ public class ConfigUtilities {
 
         //check whether config file exists and dolus has read permission
         if (!configFile.exists()) {
-            Log.log("Main config file can not be located", componentName, Log.ERROR);
+            Log.log("Main config file can not be located: " + configDir, componentName, Log.ERROR);
             return false;
         } else if (!configFile.canRead()) {
             Log.log("Dolus does not have permission to read the main config file", componentName, Log.ERROR);
