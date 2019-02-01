@@ -31,11 +31,6 @@ public class ConfigUtilities {
     private static String storageConfigDir;
 
     /**
-     * Path to log file using by logging system
-     */
-    private static String logDir;
-
-    /**
      * Available storage types
      */
     private static String[] storageTypes = {"mysql", "mongodb"};
@@ -92,10 +87,16 @@ public class ConfigUtilities {
         Log.log("Contents of the main config file read successfully", componentName, Log.INFORMATION);
 
         //parse config content and extract configurations
-        mainConfigLoaded = parseMainConfigFileContents(configContent);
+        HashMap<String,String> configuration = new HashMap<>();
+        mainConfigLoaded = ConfigParser.parseMainConfigFileContents(configContent, configuration);
 
-        if (mainConfigLoaded)
+        if (mainConfigLoaded) {
             Log.log("Contents of the main config file parsed and stored successfully", componentName, Log.INFORMATION);
+
+            //configure storage config directory and log system based on extracted data
+            storageConfigDir = configuration.get("storage_config_dir");
+            Log.setLogDir(configuration.get("log_dir"));
+        }
         else
             Log.log("Storing main configuration failed", componentName, Log.ERROR);
 
@@ -149,51 +150,6 @@ public class ConfigUtilities {
 
         return storageConfigLoaded;
     }
-
-    /**
-     * Parses contents of the main config file
-     *
-     * @param configContent contents of the main config file
-     * @return true if parsing was successful, false otherwise
-     * @since 1.0
-     */
-    private static boolean parseMainConfigFileContents(String configContent) {
-
-        //initialize a json parser
-        JSONParser parser = new JSONParser();
-
-        //result of parsing
-        boolean result = true;
-
-        try {
-            //get root object of the json file
-            JSONObject root = (JSONObject) parser.parse(configContent);
-
-            //get directory of the log file
-            logDir = (String) root.get("log_dir");
-            //make sure log dir is specified
-            if (logDir == null || logDir.length() == 0){
-                Log.log("log_dir is not specified in main config file", componentName, Log.ERROR);
-                result = false;
-            }else
-                Log.setLogDir(logDir);//configure logging directory
-
-            //get directory of the storage config file
-            storageConfigDir = (String) root.get("storage_config_dir");
-            //make sure storage config dir is specified
-            if (storageConfigDir == null || storageConfigDir.length() == 0) {
-                Log.log("storage_config_dir is not specified in main config file", componentName, Log.ERROR);
-                result = false;
-            }
-
-        } catch (ParseException e) {
-            Log.log("Can not parse contents of the main config file. Check JSON syntax", componentName, Log.ERROR);
-            result = false;
-        }
-
-        return result;
-    }
-
 
     /**
      * Parses contents of the storage config file and stores extracted storage metadata
