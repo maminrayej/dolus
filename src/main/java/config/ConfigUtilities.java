@@ -109,7 +109,7 @@ public class ConfigUtilities {
 
         //check whether config file exists and dolus has read permission
         if (!configFile.exists()) {
-            Log.log("Storage config file can not be located", componentName, Log.ERROR);
+            Log.log("Storage config file can not be located: " + storageConfigDir, componentName, Log.ERROR);
             return false;
         } else if (!configFile.canRead()) {
             Log.log("Dolus does not have permission to read the storage config file", componentName, Log.ERROR);
@@ -124,7 +124,7 @@ public class ConfigUtilities {
             return false;
         }
 
-        Log.log("Contents of the storage config file loaded successfully", componentName, Log.INFORMATION);
+        Log.log("Contents of the storage config file read successfully", componentName, Log.INFORMATION);
 
         //initialize storage config list
         storageConfigList = new ArrayList<>();
@@ -177,7 +177,7 @@ public class ConfigUtilities {
             }
 
         } catch (ParseException e) {
-            Log.log("Can not parse contents of the main config file. Check json syntax", componentName, Log.ERROR);
+            Log.log("Can not parse contents of the main config file. Check JSON syntax", componentName, Log.ERROR);
             result = false;
         }
 
@@ -266,7 +266,7 @@ public class ConfigUtilities {
             }
 
         } catch (ParseException e) {
-            Log.log("Can not parse contents of the storage config file", componentName, Log.ERROR);
+            Log.log("Can not parse contents of the storage config file. Check JSON syntax", componentName, Log.ERROR);
             return false;
         }
 
