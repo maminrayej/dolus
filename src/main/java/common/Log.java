@@ -50,19 +50,6 @@ public class Log {
      */
     public static void log(String msg, String componentName, int type) {
 
-        //check whether log file is configured or not
-        if (logDir == null){
-            System.out.println("Log file is not configured");
-            return;
-        }
-        //point to the log file
-        File logFile = new File(logDir);
-
-        //check whether file exists or not
-        if (!logFile.exists()) {
-            System.out.println("Log file does not exist");
-            return;
-        }
         //set date and time format to yyyy-MM-dd HH:mm:ss
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -82,6 +69,21 @@ public class Log {
             typeStr = "Notice";
         else if (type == INFORMATION)
             typeStr = "Information";
+
+        //check whether log file is configured or not
+        if (logDir == null){
+            System.out.println("Log file is not configured, printing message to standard output");
+            System.out.println(String.format("[%s][%s][%s]%s\n", currentDateTime, typeStr, componentName, msg));
+            return;
+        }
+        //point to the log file
+        File logFile = new File(logDir);
+
+        //check whether file exists or not
+        if (!logFile.exists()) {
+            System.out.println("Log file does not exist");
+            return;
+        }
 
         try {
             //create a file writer to write the message to log file
