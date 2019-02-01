@@ -327,44 +327,44 @@ public class ConfigUtilities {
 
         engine = (String) mySqlConfigObject.get("engine");
         if (engine == null || engine.length() == 0) {
-            Log.log("MySQL engine attribute is not defined", componentName, Log.ERROR);
+            Log.log("MySQL engine attribute is not defined for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         host = (String) mySqlConfigObject.get("host");
         if (host == null || host.length() == 0) {
-            Log.log("MySQL host attribute is not defined", componentName, Log.ERROR);
+            Log.log("MySQL host attribute is not defined for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         port = (String) mySqlConfigObject.get("port");
         if (port == null || port.length() == 0 || !isInteger(port)) {
-            Log.log("MySQL port attribute is not defined or is not a valid integer number", componentName, Log.ERROR);
+            Log.log("MySQL port attribute is not defined or is not a valid integer number for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         database = (String) mySqlConfigObject.get("database");
         if (database == null || database.length() == 0) {
-            Log.log("MySQL database name attribute is not defined", componentName, Log.ERROR);
+            Log.log("MySQL database name attribute is not defined for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         username = (String) mySqlConfigObject.get("username");
         if (username == null || username.length() == 0) {
-            Log.log("MySQL username attribute is not defined", componentName, Log.ERROR);
+            Log.log("MySQL username attribute is not defined for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         password = (String) mySqlConfigObject.get("password");
         if (password == null || password.length() == 0) {
-            Log.log("MySQL password attribute is not defined", componentName, Log.ERROR);
+            Log.log("MySQL password attribute is not defined for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         //meta data extraction
         JSONArray tables = (JSONArray) mySqlConfigObject.get("tables");
         if (tables == null || tables.size() == 0) {
-            Log.log("MySQL tables attribute is not defined or it does not contain any table", componentName, Log.ERROR);
+            Log.log("MySQL tables attribute is not defined or it does not contain any table for: " + id, componentName, Log.ERROR);
             return null;
         }
 
@@ -386,19 +386,19 @@ public class ConfigUtilities {
 
             tableName = (String) table.get("name");
             if (tableName == null || tableName.length() == 0) {
-                Log.log("MySQL table name attribute is not defined for one of its tables", componentName, Log.ERROR);
+                Log.log("MySQL table name attribute is not defined for one of its tables for: " + id, componentName, Log.ERROR);
                 return null;
             }
 
             primaryKey = (String) table.get("pk");
             if (primaryKey == null || primaryKey.length() == 0) {
-                Log.log("MySQL primary key(pk) attribute is not defined for one of its tables", componentName, Log.ERROR);
+                Log.log("MySQL primary key(pk) attribute is not defined for one of its tables for: " + id, componentName, Log.ERROR);
                 return null;
             }
 
             columns = (JSONArray) table.get("columns");
             if (columns == null || columns.size() == 0) {
-                Log.log("MySQL columns attribute is not defined for one of its table or the table does not contain any columns", componentName, Log.ERROR);
+                Log.log("MySQL columns attribute is not defined for one of its table or the table does not contain any columns for: " + id, componentName, Log.ERROR);
                 return null;
             }
 
@@ -408,6 +408,12 @@ public class ConfigUtilities {
                 column = (String) columnNameObject;
 
                 columnsSet.add(column);
+            }
+
+            //check whether pk attribute is one of the columns
+            if (!columnsSet.contains(primaryKey)){
+                Log.log("MySQL PK attribute: " + primaryKey + " is not present as one of the columns for: " + id, componentName, Log.ERROR);
+                return null;
             }
 
             //map each table with its column set
@@ -456,44 +462,44 @@ public class ConfigUtilities {
 
         engine = (String) mongoDBConfigObject.get("engine");
         if (engine == null || engine.length() == 0) {
-            Log.log("MongoDB engine attribute is not defined", componentName, Log.ERROR);
+            Log.log("MongoDB engine attribute is not defined for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         host = (String) mongoDBConfigObject.get("host");
         if (host == null || host.length() == 0) {
-            Log.log("MongoDB host attribute is not defined", componentName, Log.ERROR);
+            Log.log("MongoDB host attribute is not defined for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         port = (String) mongoDBConfigObject.get("port");
         if (port == null || port.length() == 0 || !isInteger(port)) {
-            Log.log("MongoDB port attribute is not defined or is not a valid integer number", componentName, Log.ERROR);
+            Log.log("MongoDB port attribute is not defined or is not a valid integer number for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         database = (String) mongoDBConfigObject.get("database");
         if (database == null || database.length() == 0) {
-            Log.log("MongoDB database name attribute is not defined", componentName, Log.ERROR);
+            Log.log("MongoDB database name attribute is not defined for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         username = (String) mongoDBConfigObject.get("username");
         if (username == null || username.length() == 0) {
-            Log.log("MongoDB username attribute is not defined", componentName, Log.ERROR);
+            Log.log("MongoDB username attribute is not defined for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         password = (String) mongoDBConfigObject.get("password");
         if (password == null || password.length() == 0) {
-            Log.log("MongoDB password attribute is not defined", componentName, Log.ERROR);
+            Log.log("MongoDB password attribute is not defined for: " + id, componentName, Log.ERROR);
             return null;
         }
 
         //meta data extraction
         JSONArray collectionArray = (JSONArray) mongoDBConfigObject.get("collections");
         if (collectionArray == null || collectionArray.size() == 0) {
-            Log.log("MongoDB collections attribute is not defined or it does not contain any collection", componentName, Log.ERROR);
+            Log.log("MongoDB collections attribute is not defined or it does not contain any collection for: " + id, componentName, Log.ERROR);
             return null;
         }
 
@@ -510,7 +516,7 @@ public class ConfigUtilities {
             collectionName = (String) collection.get("name");
 
             if (collectionName == null || collectionName.length() == 0) {
-                Log.log("MongoDB collection name attribute is not defined for one of its collections", componentName, Log.ERROR);
+                Log.log("MongoDB collection name attribute is not defined for one of its collections for: " + id, componentName, Log.ERROR);
                 return null;
             }
 
