@@ -84,6 +84,9 @@ class ConfigParser {
         //initialize a json parser
         JSONParser parser = new JSONParser();
 
+        //initialize a HashSet to keep track of visited ids
+        HashSet<String>  visitedIds = new HashSet<>();
+
         try {
             //get root object of json file
             JSONObject root = (JSONObject) parser.parse(configContent);
@@ -124,7 +127,7 @@ class ConfigParser {
                 }
 
                 if (storageType.equals("mysql")) {
-                    MySqlConfig mySqlConfig = parseMySQLConfig(storage, engines);
+                    MySqlConfig mySqlConfig = parseMySQLConfig(storage, engines, visitedIds);
                     if (mySqlConfig == null) {
                         Log.log("Parsing MySQL storage config failed", componentName, Log.ERROR);
                         return false;
@@ -136,7 +139,7 @@ class ConfigParser {
                     } else
                         children.add(mySqlConfig);
                 } else if (storageType.equals("mongodb")) {
-                    MongoDBConfig mongoDBConfig = parseMongoDBConfig(storage, engines);
+                    MongoDBConfig mongoDBConfig = parseMongoDBConfig(storage, engines, visitedIds);
                     if (mongoDBConfig == null) {
                         Log.log("Parsing MongoDB storage config failed", componentName, Log.ERROR);
                         return false;
@@ -165,7 +168,7 @@ class ConfigParser {
      * @return true if parsing and storing meta data and configurations was successful, false otherwise
      * @since 1.0
      */
-    private static MySqlConfig parseMySQLConfig(JSONObject mySqlConfigObject, String[] engines) {
+    private static MySqlConfig parseMySQLConfig(JSONObject mySqlConfigObject, String[] engines, HashSet<String> visitedIds) {
 
         //storage configurations
         String id;
@@ -189,6 +192,15 @@ class ConfigParser {
             Log.log("MySQL id attribute is not defined", componentName, Log.ERROR);
             return null;
         }
+
+        //make sure visited id is unique
+        if (visitedIds.contains(id)){
+            Log.log("MySQL id: " + id + " is used before", componentName, Log.ERROR);
+            return null;
+        }
+
+        //if id is unique add it to visited ids
+        visitedIds.add(id);
 
         engine = (String) mySqlConfigObject.get("engine");
         if (engine == null || engine.length() == 0) {
@@ -312,7 +324,7 @@ class ConfigParser {
      * @return true if parsing and storing meta data and configurations was successful
      * @since 1.0
      */
-    private static MongoDBConfig parseMongoDBConfig(JSONObject mongoDBConfigObject, String[] engines) {
+    private static MongoDBConfig parseMongoDBConfig(JSONObject mongoDBConfigObject, String[] engines, HashSet<String> visitedIds) {
 
         //storage configurations
         String id;
@@ -336,6 +348,15 @@ class ConfigParser {
             Log.log("MongoDB id attribute is not defined", componentName, Log.ERROR);
             return null;
         }
+
+        //make sure visited id is unique
+        if (visitedIds.contains(id)){
+            Log.log("MongoDB id: " + id + " is used before", componentName, Log.ERROR);
+            return null;
+        }
+
+        //if id is unique add it to visited ids
+        visitedIds.add(id);
 
         engine = (String) mongoDBConfigObject.get("engine");
         if (engine == null || engine.length() == 0) {
