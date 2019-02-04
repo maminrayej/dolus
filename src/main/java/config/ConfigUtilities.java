@@ -165,7 +165,7 @@ public class ConfigUtilities {
 
             //check whether parent id really exists
             if (parent == null) {
-                Log.log(String.format("Parent id: %s defined by storage: %s does not exist in storage config file", parentId, child.getId()), componentName, Log.ERROR);
+                Log.log(String.format("Parent id: %s defined by storage: %s is not a top level storage", parentId, child.getId()), componentName, Log.ERROR);
                 return false;
             }
 
