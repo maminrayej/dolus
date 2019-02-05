@@ -111,7 +111,7 @@ public class MySqlConfig extends StorageConfig {
         this.primaryKeys = primaryKeys;
     }
 
-    public boolean parseMySQLConfig(MySqlConfig mySqlConfig, JSONObject mySqlConfigObject, String[] engines, HashSet<String> visitedIds){
+    public static boolean parseMySQLConfig(MySqlConfig mySqlConfig, JSONObject mySqlConfigObject, String[] engines, HashSet<String> visitedIds){
 
         boolean successful = StorageConfig.parseStorageConfig(mySqlConfig, mySqlConfigObject, engines, visitedIds);
 
