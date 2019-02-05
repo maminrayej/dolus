@@ -113,6 +113,10 @@ public abstract class StorageConfig {
         this(id, engine, null, host, port, database, username, password);
     }
 
+    public StorageConfig(){
+        this(null, null, null, null, null, null, null, null);
+    }
+
     /**
      * Host address of the storage
      *

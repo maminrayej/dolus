@@ -81,6 +81,14 @@ public class MySqlConfig extends StorageConfig {
 
     }
 
+    public MySqlConfig(){
+
+        super();
+
+        this.tablesInfo = null;
+        this.primaryKeys = null;
+    }
+
     @Override
     public boolean containsAttribute(String collectionName, String attributeName) {
 

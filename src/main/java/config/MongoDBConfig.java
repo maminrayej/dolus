@@ -78,6 +78,13 @@ public class MongoDBConfig extends StorageConfig {
 
     }
 
+    public MongoDBConfig(){
+        super();
+
+        this.collections = null;
+        this.primaryKeys = null;
+    }
+
     public boolean containsCollection(String collectionName) {
 
         return this.collections.contains(collectionName);
