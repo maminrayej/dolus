@@ -363,13 +363,13 @@ public abstract class StorageConfig {
 
         id = (String) storageConfigJsonObject.get("id");
         if (id == null || id.length() == 0) {
-            Log.log("MySQL id attribute is not defined", componentName, Log.ERROR);
+            Log.log("Storage id attribute is not defined", componentName, Log.ERROR);
             return false;
         }
 
         //make sure visited id is unique
         if (visitedIds.contains(id)){
-            Log.log("MySQL id: " + id + " is used before", componentName, Log.ERROR);
+            Log.log("Storage id: " + id + " is used before", componentName, Log.ERROR);
             return false;
         }
 
@@ -378,7 +378,7 @@ public abstract class StorageConfig {
 
         engine = (String) storageConfigJsonObject.get("engine");
         if (engine == null || engine.length() == 0) {
-            Log.log("MySQL engine attribute is not defined for: " + id, componentName, Log.ERROR);
+            Log.log("Storage engine attribute is not defined for: " + id, componentName, Log.ERROR);
             return false;
         }
 
@@ -396,31 +396,31 @@ public abstract class StorageConfig {
 
         host = (String) storageConfigJsonObject.get("host");
         if (host == null || host.length() == 0) {
-            Log.log("MySQL host attribute is not defined for: " + id, componentName, Log.ERROR);
+            Log.log("Storage host attribute is not defined for: " + id, componentName, Log.ERROR);
             return false;
         }
 
         port = (String) storageConfigJsonObject.get("port");
         if (port == null || port.length() == 0 || !isInteger(port)) {
-            Log.log("MySQL port attribute is not defined or is not a valid integer number for: " + id, componentName, Log.ERROR);
+            Log.log("Storage port attribute is not defined or is not a valid integer number for: " + id, componentName, Log.ERROR);
             return false;
         }
 
         database = (String) storageConfigJsonObject.get("database");
         if (database == null || database.length() == 0) {
-            Log.log("MySQL database name attribute is not defined for: " + id, componentName, Log.ERROR);
+            Log.log("Storage database name attribute is not defined for: " + id, componentName, Log.ERROR);
             return false;
         }
 
         username = (String) storageConfigJsonObject.get("username");
         if (username == null || username.length() == 0) {
-            Log.log("MySQL username attribute is not defined for: " + id, componentName, Log.ERROR);
+            Log.log("Storage username attribute is not defined for: " + id, componentName, Log.ERROR);
             return false;
         }
 
         password = (String) storageConfigJsonObject.get("password");
         if (password == null || password.length() == 0) {
-            Log.log("MySQL password attribute is not defined for: " + id, componentName, Log.ERROR);
+            Log.log("Storage password attribute is not defined for: " + id, componentName, Log.ERROR);
             return false;
         }
 
