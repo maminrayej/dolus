@@ -1,6 +1,11 @@
 package config;
 
+import common.Log;
+import org.json.simple.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -11,6 +16,11 @@ import java.util.List;
  * @since 1.0
  */
 public abstract class StorageConfig {
+
+    /**
+     * Component name to use in logging system
+     */
+    private static final String componentName = "StorageConfig";
 
     /**
      * Unique id of the storage
@@ -329,5 +339,108 @@ public abstract class StorageConfig {
      */
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public static boolean parseStorageConfig(StorageConfig storageConfig, JSONObject storageConfigJsonObject, String[] validEngines, HashSet<String> visitedIds){
+
+        //storage configurations
+        String id;
+        String parentId;
+        String engine;
+        String host;
+        String port;
+        String database;
+        String username;
+        String password;
+
+        //configuration extraction
+        parentId = (String) storageConfigJsonObject.get("parent");
+
+        if (parentId == null || parentId.length() == 0)
+            parentId = null;
+
+        storageConfig.setParentId(parentId);
+
+        id = (String) storageConfigJsonObject.get("id");
+        if (id == null || id.length() == 0) {
+            Log.log("MySQL id attribute is not defined", componentName, Log.ERROR);
+            return false;
+        }
+
+        //make sure visited id is unique
+        if (visitedIds.contains(id)){
+            Log.log("MySQL id: " + id + " is used before", componentName, Log.ERROR);
+            return false;
+        }
+
+        //if id is unique add it to visited ids
+        visitedIds.add(id);
+
+        engine = (String) storageConfigJsonObject.get("engine");
+        if (engine == null || engine.length() == 0) {
+            Log.log("MySQL engine attribute is not defined for: " + id, componentName, Log.ERROR);
+            return false;
+        }
+
+        //make sure specified engine is valid
+        boolean isValid = false;
+        for (String validEngine : validEngines)
+            if (validEngine.equals(engine)){
+                isValid = true;
+                break;
+            }
+        if (!isValid){
+            Log.log("Specified engine: " + engine + " is not a valid query engine for: " + id, componentName, Log.ERROR);
+            return false;
+        }
+
+        host = (String) storageConfigJsonObject.get("host");
+        if (host == null || host.length() == 0) {
+            Log.log("MySQL host attribute is not defined for: " + id, componentName, Log.ERROR);
+            return false;
+        }
+
+        port = (String) storageConfigJsonObject.get("port");
+        if (port == null || port.length() == 0 || !isInteger(port)) {
+            Log.log("MySQL port attribute is not defined or is not a valid integer number for: " + id, componentName, Log.ERROR);
+            return false;
+        }
+
+        database = (String) storageConfigJsonObject.get("database");
+        if (database == null || database.length() == 0) {
+            Log.log("MySQL database name attribute is not defined for: " + id, componentName, Log.ERROR);
+            return false;
+        }
+
+        username = (String) storageConfigJsonObject.get("username");
+        if (username == null || username.length() == 0) {
+            Log.log("MySQL username attribute is not defined for: " + id, componentName, Log.ERROR);
+            return false;
+        }
+
+        password = (String) storageConfigJsonObject.get("password");
+        if (password == null || password.length() == 0) {
+            Log.log("MySQL password attribute is not defined for: " + id, componentName, Log.ERROR);
+            return false;
+        }
+
+        return true;
+    }
+
+
+    /**
+     * Checks if the specified string is a integer in form of [0-9]+
+     *
+     * @param integer string integer
+     * @return true if string is a valid integer, false otherwise
+     * @since 1.0
+     */
+    private static boolean isInteger(String integer) {
+
+        for (int i = 0; i < integer.length(); i++)
+            if (!Character.isDigit(integer.charAt(i)))
+                return false;
+
+        return true;
     }
 }
