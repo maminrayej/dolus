@@ -363,8 +363,6 @@ public abstract class StorageConfig {
         if (parentId == null || parentId.length() == 0)
             parentId = null;
 
-        storageConfig.setParentId(parentId);
-
         id = (String) storageConfigJsonObject.get("id");
         if (id == null || id.length() == 0) {
             Log.log("Storage id attribute is not defined", componentName, Log.ERROR);
@@ -427,6 +425,15 @@ public abstract class StorageConfig {
             Log.log("Storage password attribute is not defined for: " + id, componentName, Log.ERROR);
             return false;
         }
+
+        storageConfig.setId(id);
+        storageConfig.setParentId(parentId);
+        storageConfig.setEngine(engine);
+        storageConfig.setHost(host);
+        storageConfig.setPort(port);
+        storageConfig.setDatabase(database);
+        storageConfig.setUsername(username);
+        storageConfig.setPassword(password);
 
         return true;
     }
