@@ -1,6 +1,8 @@
 package config;
 
 import common.Log;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -91,4 +93,69 @@ public class MongoDBConfig extends StorageConfig {
         return primaryKeys.get(collectionName);
     }
 
+    public void setCollections(HashSet<String> collections) {
+        this.collections = collections;
+    }
+
+    public void setPrimaryKeys(HashMap<String, String> primaryKeys) {
+        this.primaryKeys = primaryKeys;
+    }
+
+    private static boolean parseMongoDBConfig(MongoDBConfig mongoDBConfig, JSONObject mongoDBConfigJSONObject, String[] engines, HashSet<String> visitedIds) {
+
+        boolean successful = StorageConfig.parseStorageConfig(mongoDBConfig, mongoDBConfigJSONObject, engines, visitedIds);
+
+        if (!successful){
+            Log.log("MySQL storage config parsing failed", componentName, Log.ERROR);
+            return false;
+        }
+
+        String id = mongoDBConfig.getId();
+
+        //storage meta data
+        HashSet<String> collections = new HashSet<>();//set of all collection names in mongodb database
+        HashMap<String, String> primaryKeys = new HashMap<>();//map each collection name with its primary key
+
+        //meta data extraction
+        JSONArray collectionArray = (JSONArray) mongoDBConfigJSONObject.get("collections");
+        if (collectionArray == null || collectionArray.size() == 0) {
+            Log.log("MongoDB collections attribute is not defined or it does not contain any collection for: " + id, componentName, Log.ERROR);
+            return false;
+        }
+
+        //meta data holders
+        String collectionName;
+        JSONObject collection;
+
+        //for each collection extract its name and primary key
+        for (Object collectionObject : collectionArray) {
+
+            collection = (JSONObject) collectionObject;
+
+            //extract collection name
+            collectionName = (String) collection.get("name");
+
+            if (collectionName == null || collectionName.length() == 0) {
+                Log.log("MongoDB collection name attribute is not defined for one of its collections for: " + id, componentName, Log.ERROR);
+                return false;
+            }
+
+            //extract collection primary key
+            String collectionPrimaryKey = (String) collection.get("pk");
+
+            //if primary key is not defined or is empty -> set it to default mongoDB primary kry : _id
+            if (collectionPrimaryKey == null || collectionPrimaryKey.length() == 0)
+                collectionPrimaryKey = "_id";
+
+            collections.add(collectionName);
+
+            primaryKeys.put(collectionName, collectionPrimaryKey);
+        }
+
+        mongoDBConfig.setCollections(collections);
+        mongoDBConfig.setPrimaryKeys(primaryKeys);
+
+        return true;
+
+    }
 }
