@@ -251,4 +251,83 @@ public abstract class StorageConfig {
      */
     public abstract String getPrimaryKey(String collectionName);
 
+    /**
+     * Set id of this storage
+     *
+     * @param id id of this storage
+     * @since 1.0
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * Set parent id of this storage
+     *
+     * @param parentId parent id of this storage
+     * @since 1.0
+     */
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+
+    /**
+     * Set engine to use when querying data of this storage
+     *
+     * @param engine engine to use when querying data of this storage
+     * @since 1.0
+     */
+    public void setEngine(String engine) {
+        this.engine = engine;
+    }
+
+    /**
+     * Set host of this storage
+     *
+     * @param host host of this storage
+     * @since 1.0
+     */
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    /**
+     *
+     *
+     * @param port port of this storage
+     * @since 1.0
+     */
+    public void setPort(String port) {
+        this.port = port;
+    }
+
+    /**
+     * Set database of this storage
+     *
+     * @param database database of this storage
+     * @since 1.0
+     */
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    /**
+     * Set username of this storage
+     *
+     * @param username username of this storage
+     * @since 1.0
+     */
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    /**
+     * Set password of this storage
+     *
+     * @param password password of this storage
+     * @since 1.0
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
