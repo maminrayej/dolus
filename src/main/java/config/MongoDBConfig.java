@@ -108,7 +108,7 @@ public class MongoDBConfig extends StorageConfig {
         this.primaryKeys = primaryKeys;
     }
 
-    private static boolean parseMongoDBConfig(MongoDBConfig mongoDBConfig, JSONObject mongoDBConfigJSONObject, String[] engines, HashSet<String> visitedIds) {
+    public static boolean parseMongoDBConfig(MongoDBConfig mongoDBConfig, JSONObject mongoDBConfigJSONObject, String[] engines, HashSet<String> visitedIds) {
 
         boolean successful = StorageConfig.parseStorageConfig(mongoDBConfig, mongoDBConfigJSONObject, engines, visitedIds);
 
