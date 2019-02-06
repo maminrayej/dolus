@@ -28,11 +28,12 @@ class ConfigParser {
     /**
      * Parses contents of the main config file
      *
-     * @param configContent contents of the main config file
+     * @param mainConfigContent contents of the main config file
+     * @param configuration     object to store extracted configurations in
      * @return true if parsing was successful, false otherwise
      * @since 1.0
      */
-    static boolean parseMainConfigFileContents(String configContent, HashMap<String, String> configuration) {
+    static boolean parseMainConfigFileContents(String mainConfigContent, HashMap<String, String> configuration) {
 
         //initialize a json parser
         JSONParser parser = new JSONParser();
@@ -42,10 +43,13 @@ class ConfigParser {
 
         try {
             //get root object of the json file
-            JSONObject root = (JSONObject) parser.parse(configContent);
+            JSONObject root = (JSONObject) parser.parse(mainConfigContent);
+
+            /////////////// log directory //////////////
 
             //get directory of the log file
             String logDir = (String) root.get("log_dir");
+
             //make sure log dir is specified
             if (logDir == null || logDir.length() == 0) {
                 Log.log("log_dir is not specified in main config file", componentName, Log.ERROR);
@@ -53,15 +57,17 @@ class ConfigParser {
             } else
                 configuration.put("log_dir", logDir);
 
+            /////////////// storage config directory //////////////
+
             //get directory of the storage config file
             String storageConfigDir = (String) root.get("storage_config_dir");
+
             //make sure storage config dir is specified
             if (storageConfigDir == null || storageConfigDir.length() == 0) {
                 Log.log("storage_config_dir is not specified in main config file", componentName, Log.ERROR);
                 result = false;
-            }
-
-            configuration.put("storage_config_dir", storageConfigDir);
+            } else
+                configuration.put("storage_config_dir", storageConfigDir);
 
         } catch (ParseException e) {
             Log.log("Can not parse contents of the main config file. Check JSON syntax", componentName, Log.ERROR);
@@ -74,39 +80,47 @@ class ConfigParser {
     /**
      * Parses contents of the storage config file and stores extracted storage metadata
      *
-     * @param configContent contents of the storage config file
+     * @param storageConfigContent   contents of the storage config file
+     * @param validStorageTypes      valid storage types
+     * @param validEngines           valid engines
+     * @param storageConfigList      list to store top level storage systems in
+     * @param topLevelStorageSystems contains mapping between top level storage systems ids and their storage config objects
+     * @param childStorageSystems    contains list of storage systems which are not top level(have parents)
      * @return true if parsing was successful and meta data stored successfully, false otherwise
      * @since 1.0
      */
-    static boolean parseStorageConfigFileContents(String configContent, List<StorageConfig> storageConfigList, String[] storageTypes, String[] engines,
-                                                  HashMap<String, StorageConfig> topLevelStorageSystems, ArrayList<StorageConfig> children) {
+    static boolean parseStorageConfigFileContents(String storageConfigContent, String[] validStorageTypes, String[] validEngines,
+                                                  List<StorageConfig> storageConfigList, HashMap<String, StorageConfig> topLevelStorageSystems, ArrayList<StorageConfig> childStorageSystems) {
 
         //initialize a json parser
         JSONParser parser = new JSONParser();
 
-        //initialize a HashSet to keep track of visited ids
-        HashSet<String>  visitedIds = new HashSet<>();
+        /*
+         * initialize a HashSet to keep track of visited ids.
+         * this data structure is used to make sure all ids in the storage config file are unique
+         */
+        HashSet<String> visitedIds = new HashSet<>();
 
         try {
             //get root object of json file
-            JSONObject root = (JSONObject) parser.parse(configContent);
+            JSONObject root = (JSONObject) parser.parse(storageConfigContent);
 
-            //get array storage systems
-            JSONArray storageArray = (JSONArray) root.get("storage");
+            //get array of storage systems
+            JSONArray storageConfigArray = (JSONArray) root.get("storage");
 
             //make sure at least one storage is defined
-            if (storageArray == null || storageArray.size() < 1) {
+            if (storageConfigArray == null || storageConfigArray.size() < 1) {
                 Log.log("At least one storage must be specified in storage config file", componentName, Log.ERROR);
                 return false;
             }
 
             //for each storage system, call its appropriate parser
-            for (Object storageObject : storageArray) {
+            for (Object storageConfigObject : storageConfigArray) {
 
-                JSONObject storage = (JSONObject) storageObject;
+                JSONObject storageConfigJsonObject = (JSONObject) storageConfigObject;
 
                 //get storage type
-                String storageType = (String) storage.get("type");
+                String storageType = (String) storageConfigJsonObject.get("type");
 
                 //make sure that storage type attribute is specified
                 if (storageType == null || storageType.length() == 0) {
@@ -114,41 +128,60 @@ class ConfigParser {
                     return false;
                 }
 
-                //make sure type is valid
+                //make sure specified storage type is valid
                 boolean isValid = false;
-                for (String validType : storageTypes)
+                for (String validType : validStorageTypes)
                     if (validType.equals(storageType)) {
                         isValid = true;
                         break;
                     }
-                if (!isValid){
+                if (!isValid) {
                     Log.log("Specified type: " + storageType + " is not a valid storage type", componentName, Log.ERROR);
                     return false;
                 }
 
+                //call appropriate parser for each storage based on their type
                 if (storageType.equals("mysql")) {
-                    MySqlConfig mySqlConfig = new MySqlConfig();
-                    boolean successful = MySqlConfig.parseMySQLConfig(mySqlConfig, storage, engines, visitedIds);
+
+                    //initialize a new MySQL config container
+                    MySqlConfig mySqlConfigContainer = new MySqlConfig();
+
+                    //parse MySQL config
+                    boolean successful = MySqlConfig.parseMySQLConfig(mySqlConfigContainer, storageConfigJsonObject, validEngines, visitedIds);
                     if (!successful)
                         return false;
 
                     //check whether storage is top level or not
-                    if (mySqlConfig.getParentId() == null) {
-                        topLevelStorageSystems.put(mySqlConfig.getId(), mySqlConfig);
-                        storageConfigList.add(mySqlConfig);
+                    if (mySqlConfigContainer.getParentId() == null) {
+
+                        //add storage to top level storage systems
+                        topLevelStorageSystems.put(mySqlConfigContainer.getId(), mySqlConfigContainer);
+
+                        //add storage to storage graph
+                        storageConfigList.add(mySqlConfigContainer);
+
                     } else
-                        children.add(mySqlConfig);
+                        childStorageSystems.add(mySqlConfigContainer);
+
                 } else if (storageType.equals("mongodb")) {
-                    MongoDBConfig mongoDBConfig = new MongoDBConfig();
-                    boolean successful = MongoDBConfig.parseMongoDBConfig(mongoDBConfig, storage, engines, visitedIds);
+
+                    MongoDBConfig mongoDBConfigContainer = new MongoDBConfig();
+
+                    boolean successful = MongoDBConfig.parseMongoDBConfig(mongoDBConfigContainer, storageConfigJsonObject, validEngines, visitedIds);
                     if (!successful)
-                        Log.log("Parsing MongoDB storage config failed", componentName, Log.ERROR);
+                        return false;
 
                     //check whether storage is top level or not
-                    if (mongoDBConfig.getParentId() == null) {
-                        topLevelStorageSystems.put(mongoDBConfig.getId(), mongoDBConfig);
-                        storageConfigList.add(mongoDBConfig);
-                    } else children.add(mongoDBConfig);
+                    if (mongoDBConfigContainer.getParentId() == null) {
+
+                        //add storage to top level storage systems
+                        topLevelStorageSystems.put(mongoDBConfigContainer.getId(), mongoDBConfigContainer);
+
+                        //add storage to storage graph
+                        storageConfigList.add(mongoDBConfigContainer);
+
+                    } else
+                        childStorageSystems.add(mongoDBConfigContainer);
                 }
 
             }
