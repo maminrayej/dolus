@@ -81,12 +81,128 @@ public class MySqlConfigContainer extends StorageConfigContainer {
 
     }
 
-    public MySqlConfigContainer(){
+    /**
+     * Default constructor
+     *
+     * @since 1.0
+     */
+    public MySqlConfigContainer() {
 
         super();
 
         this.tablesInfo = null;
         this.primaryKeys = null;
+    }
+
+    /**
+     * Parses MySql configurations
+     *
+     * @param mySqlConfigContainer  container to store extracted configurations in
+     * @param mySqlConfigJsonObject json object containing configurations
+     * @param validEngines          valid engines
+     * @param visitedIds            visited ids
+     * @return true if parsing and storing configurations was successful, false otherwise
+     * @since 1.0
+     */
+    public static boolean parseMySQLConfig(MySqlConfigContainer mySqlConfigContainer, JSONObject mySqlConfigJsonObject, String[] validEngines, HashSet<String> visitedIds) {
+
+        //first parse basic configurations
+        boolean successful = StorageConfigContainer.parseStorageConfig(mySqlConfigContainer, mySqlConfigJsonObject, validEngines, visitedIds);
+
+        //make sure parsing basic configurations was successful
+        if (!successful) {
+            Log.log("MySQL storage config parsing failed", componentName, Log.ERROR);
+            return false;
+        }
+
+        //get id of the current storage(is used for logging more helpful messages)
+        String id = mySqlConfigContainer.getId();
+
+        //map each table with its column set: table name -> [column1 ,column2, ...]
+        HashMap<String, HashSet<String>> tablesInfo = new HashMap<>();
+
+        //map tables with their primary keys: table name -> primary key
+        HashMap<String, String> primaryKeys = new HashMap<>();
+
+        //get array of tables present in the storage
+        JSONArray tables = (JSONArray) mySqlConfigJsonObject.get("tables");
+
+        //make sure storage has at least on table
+        if (tables == null || tables.size() == 0) {
+            Log.log("For MySQL storage: " + id + ", tables attribute is not defined or it does not contain any table", componentName, Log.ERROR);
+            return false;
+        }
+
+        //for each table, extract its meta data and store it
+        for (Object tableObject : tables) {
+
+            //set containing all columns of current table
+            HashSet<String> columnsSet = new HashSet<>();
+
+            //contains data about current table
+            JSONObject tableJsonObject = (JSONObject) tableObject;
+
+            /////////////////// table name //////////////////
+            //name of current table
+            String tableName = (String) tableJsonObject.get("name");
+
+            //make sure table name is specified
+            if (tableName == null || tableName.length() == 0) {
+                Log.log("For MySQL storage: " + id + ", table name attribute is not defined for one of its tables", componentName, Log.ERROR);
+                return false;
+            }
+
+            /////////////////// columns //////////////////
+
+            //contains data about column of current table
+            JSONArray columnsArray = (JSONArray) tableJsonObject.get("columns");
+
+            if (columnsArray == null || columnsArray.size() == 0) {
+                Log.log("For MySQL storage: " + id + ", columns attribute is not defined for table: " + tableName + " or the table does not contain any columns", componentName, Log.ERROR);
+                return false;
+            }
+
+            //extract column names and add them to the column set
+            for (Object columnNameObject : columnsArray) {
+
+                //name of current column
+                String columnName = (String) columnNameObject;
+
+                columnsSet.add(columnName);
+            }
+
+            /////////////////// primary key //////////////////
+
+            //primary key of current table
+            String primaryKey = (String) tableJsonObject.get("pk");
+
+            //make sure primary key is specified
+            if (primaryKey == null || primaryKey.length() == 0) {
+                Log.log("For MySQL storage: " + id + ", primary key(pk) attribute is not defined for table: " + tableName, componentName, Log.ERROR);
+                return false;
+            }
+
+            //make sure pk attribute is one of the columns
+            if (!columnsSet.contains(primaryKey)) {
+                Log.log("For MySQL storage: " + id + ", PK attribute: " + primaryKey + " is not present as one of the columns for table: " + tableName, componentName, Log.ERROR);
+                return false;
+            }
+
+            //map table with its column set
+            tablesInfo.put(tableName, columnsSet);
+
+            //map table with its primary key
+            primaryKeys.put(tableName, primaryKey);
+
+        }
+
+        //store tables info in container
+        mySqlConfigContainer.setTablesInfo(tablesInfo);
+
+        //store primary keys in container
+        mySqlConfigContainer.setPrimaryKeys(primaryKeys);
+
+        return true;
     }
 
     @Override
@@ -111,95 +227,23 @@ public class MySqlConfigContainer extends StorageConfigContainer {
         return tablesInfo.containsKey(collectionName);
     }
 
+    /**
+     * Set tables info
+     *
+     * @param tablesInfo mapping between table name and its columns
+     * @since 1.0
+     */
     public void setTablesInfo(HashMap<String, HashSet<String>> tablesInfo) {
         this.tablesInfo = tablesInfo;
     }
 
+    /**
+     * Set primary keys
+     *
+     * @param primaryKeys mapping between table name and its primary key
+     * @since 1.0
+     */
     public void setPrimaryKeys(HashMap<String, String> primaryKeys) {
         this.primaryKeys = primaryKeys;
-    }
-
-    public static boolean parseMySQLConfig(MySqlConfigContainer mySqlConfig, JSONObject mySqlConfigObject, String[] engines, HashSet<String> visitedIds){
-
-        boolean successful = StorageConfigContainer.parseStorageConfig(mySqlConfig, mySqlConfigObject, engines, visitedIds);
-
-        if (!successful){
-            Log.log("MySQL storage config parsing failed", componentName, Log.ERROR);
-            return false;
-        }
-
-        String id = mySqlConfig.getId();
-
-        //storage meta data
-        HashMap<String, HashSet<String>> tablesInfo = new HashMap<>();//map each table with its column set: table name -> [column1 ,column2, ...]
-        HashMap<String, String> primaryKeys = new HashMap<>();//map tables with their primary keys: table name -> primary key
-
-        //meta data extraction
-        JSONArray tables = (JSONArray) mySqlConfigObject.get("tables");
-        if (tables == null || tables.size() == 0) {
-            Log.log("MySQL tables attribute is not defined or it does not contain any table for: " + id, componentName, Log.ERROR);
-            return false;
-        }
-
-        //meta data holders
-        JSONObject table;//contains data about current table
-        JSONArray columns;//contains data about column of current table
-        HashSet<String> columnsSet;//set containing all columns of current table
-        String column;//name of current column
-        String tableName;//name of current table
-        String primaryKey;//primary key of current table
-
-        //for each table, extract its meta data and store it
-        for (Object tableObject : tables) {
-
-            //make a new column set
-            columnsSet = new HashSet<>();
-
-            table = (JSONObject) tableObject;
-
-            tableName = (String) table.get("name");
-            if (tableName == null || tableName.length() == 0) {
-                Log.log("MySQL table name attribute is not defined for one of its tables for: " + id, componentName, Log.ERROR);
-                return false;
-            }
-
-            primaryKey = (String) table.get("pk");
-            if (primaryKey == null || primaryKey.length() == 0) {
-                Log.log("MySQL primary key(pk) attribute is not defined for one of its tables for: " + id, componentName, Log.ERROR);
-                return false;
-            }
-
-            columns = (JSONArray) table.get("columns");
-            if (columns == null || columns.size() == 0) {
-                Log.log("MySQL columns attribute is not defined for one of its table or the table does not contain any columns for: " + id, componentName, Log.ERROR);
-                return false;
-            }
-
-            //extract column names and add them to the column set
-            for (Object columnNameObject : columns) {
-
-                column = (String) columnNameObject;
-
-                columnsSet.add(column);
-            }
-
-            //check whether pk attribute is one of the columns
-            if (!columnsSet.contains(primaryKey)){
-                Log.log("MySQL PK attribute: " + primaryKey + " is not present as one of the columns for: " + id, componentName, Log.ERROR);
-                return false;
-            }
-
-            //map each table with its column set
-            tablesInfo.put(tableName, columnsSet);
-
-            //map each table with its primary key
-            primaryKeys.put(tableName, primaryKey);
-
-        }
-
-        mySqlConfig.setPrimaryKeys(primaryKeys);
-        mySqlConfig.setTablesInfo(tablesInfo);
-
-        return true;
     }
 }
