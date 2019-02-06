@@ -4,15 +4,12 @@ import common.Log;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * This class is responsible for loading config files of Dolus
- *
+ * <p>
  * There are two config files. main config file and storage config file.
  * main config file contains global configurations and tweaks about dolus.
  * it determines where necessary files are, how dolus should behave and etc.
@@ -50,12 +47,12 @@ public class ConfigUtilities {
      * child storage systems can be access through their parents.
      * this data structure represent storage graph.
      * example:
-     *    [ mysql1  ----> mongo1 ----> mysql2 ]
-     *     /     \                       |
-     *  mongo2  mongo3                 mongo4
-     *
-     *  this data structure only contains mysql1, mongo1, mysql2
-     *  other storage systems can be accessed by these three.
+     * [ mysql1  ----> mongo1 ----> mysql2 ]
+     * /     \                       |
+     * mongo2  mongo3                 mongo4
+     * <p>
+     * this data structure only contains mysql1, mongo1, mysql2
+     * other storage systems can be accessed by these three.
      */
     private static List<StorageConfig> storageConfigList;
 
@@ -255,13 +252,54 @@ public class ConfigUtilities {
     }
 
     /**
-     * Searches among registered storage systems to find one which contains the named collection
+     * Searches among registered storage systems to find one which contains the named collection and attribute
      *
      * @param collectionName name of the collection
+     * @param attributeName  name of the attribute in the collection
      * @return storage containing the named collection if found, null otherwise
      * @since 1.0
      */
-    public static StorageConfig findStorage(String collectionName) {
+    public static StorageConfig findStorage(String collectionName, String attributeName) {
+
+        //make sure storage config is loaded successfully
+        if (!storageConfigLoaded) {
+            Log.log("Storage graph is not configured yet. Can not search for collections", componentName, Log.ERROR);
+            return null;
+        }
+
+        /*
+         * search all storage systems for the specified collection and attribute using BFS.
+         * this method uses BFS because dolus search among top level storage systems first.
+         * if there is a storage that contains the collection name, only its sub tree will be searched to find the storage containing attribute
+         * it means there can not be two storage systems with same collection name unless they are in a sub tree
+         * for example:
+         *      mysql1(table1, table2) ----> mongo1(table3,table4) ----> mysql2(table4,table5)
+         *      /  \                                                            |
+         *    ...  ...                                                         ...
+         *
+         *    if we search for table4, mongo1 will be found and mysql2 will be deleted from the queue.
+         */
+
+        //add top level storage systems to queue
+        Queue<StorageConfig> queue = new LinkedList<>(storageConfigList);
+
+        //search the storage graph using BFS
+        while (!queue.isEmpty()) {
+
+            StorageConfig current = queue.remove();
+
+            //if current storage contains collection search for attribute in its sub tree
+            if (current.containsCollection(collectionName)) {
+                if (current.containsAttribute(collectionName, attributeName))
+                    return current;
+                else{
+                    queue.clear();
+                    queue.addAll(current.getChildren());
+                }
+            }
+            else
+                queue.addAll(current.getChildren());
+        }
 
         return null;
     }
