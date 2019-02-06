@@ -191,14 +191,14 @@ public class ConfigUtilities {
         HashMap<String, StorageConfig> topLevelStorageSystems = new HashMap<>();
 
         //List of storage systems which have parents
-        ArrayList<StorageConfig> children = new ArrayList<>();
+        ArrayList<StorageConfig> childStorageSystems = new ArrayList<>();
 
         //parse storage config content and extract configurations
-        storageConfigLoaded = ConfigParser.parseStorageConfigFileContents(storageConfigContent, storageConfigList, validStorageTypes, validEngines, topLevelStorageSystems, children);
+        storageConfigLoaded = ConfigParser.parseStorageConfigFileContents(storageConfigContent, validStorageTypes, validEngines, storageConfigList, topLevelStorageSystems, childStorageSystems);
 
         ////////////////////// Construct phase //////////////////////////
         //create storage graph by connecting child and parent storage systems together
-        for (StorageConfig child : children) {
+        for (StorageConfig child : childStorageSystems) {
 
             String parentId = child.getParentId();
 
