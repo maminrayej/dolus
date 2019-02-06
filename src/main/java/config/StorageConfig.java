@@ -4,12 +4,11 @@ import common.Log;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
 /**
- * Contains configuration of a storage
+ * This class contains basic configurations of a storage
  *
  * @author m.amin rayej
  * @version 1.0
@@ -43,7 +42,7 @@ public abstract class StorageConfig {
     private StorageConfig parent;
 
     /**
-     * List of children storage belonging to this storage
+     * List of child storage systems belonging to this storage
      */
     private List<StorageConfig> children;
 
@@ -77,7 +76,7 @@ public abstract class StorageConfig {
      * @param parentId parent id of this storage in storage graph
      * @param host     host address of storage
      * @param port     port number of storage
-     * @param database storage name
+     * @param database database name
      * @param username username credential
      * @param password password credential
      * @since 1.0
@@ -109,243 +108,30 @@ public abstract class StorageConfig {
      * @param password password credential
      * @since 1.0
      */
-    public StorageConfig(String id, String engine, String host, String port, String database, String username, String password){
+    public StorageConfig(String id, String engine, String host, String port, String database, String username, String password) {
         this(id, engine, null, host, port, database, username, password);
     }
 
-    public StorageConfig(){
+    /**
+     * Default constructor
+     *
+     * @since 1.0
+     */
+    public StorageConfig() {
         this(null, null, null, null, null, null, null, null);
     }
 
     /**
-     * Host address of the storage
+     * Parses basic configurations of a storage
      *
-     * @return host address of the storage
+     * @param storageConfigContainer  container to put the extracted information in
+     * @param storageConfigJsonObject json object containing configuration
+     * @param validEngines            valid engines
+     * @param visitedIds              visited ids
+     * @return true if parsing and storing configs was successful, false otherwise
      * @since 1.0
      */
-    public String getHost() {
-        return host;
-    }
-
-    /**
-     * Port number of the storage
-     *
-     * @return port of the storage
-     * @since 1.0
-     */
-    public String getPort() {
-        return port;
-    }
-
-    /**
-     * Database name
-     *
-     * @return name of the database
-     * @since 1.0
-     */
-    public String getDatabase() {
-        return database;
-    }
-
-    /**
-     * Username credential
-     *
-     * @return username credential
-     * @since 1.0
-     */
-    public String getUsername() {
-        return username;
-    }
-
-    /**
-     * Password credential
-     *
-     * @return password credential
-     * @since 1.0
-     */
-    public String getPassword() {
-        return password;
-    }
-
-    /**
-     * Storage Identifier
-     *
-     * @return id of this storage
-     * @since 1.0
-     */
-    public String getId(){
-        return this.id;
-    }
-
-    /**
-     * Parent id of this storage
-     *
-     * @return id of parent storage
-     * @since 1.0
-     */
-    public String getParentId(){
-        return this.parentId;
-    }
-
-    /**
-     * Query Engine
-     *
-     * @return engine name to use when querying data of this storage
-     * @since 1.0
-     */
-    public String getEngine(){
-        return this.engine;
-    }
-
-    /**
-     * Parent storage
-     *
-     * @return parent storage of this storage in storage graph
-     * @since 1.0
-     */
-    public StorageConfig getParent(){
-        return this.parent;
-    }
-
-    /**
-     * Set parent storage
-     *
-     * @param storageConfig parent of this storage in storage graph
-     * @since 1.0
-     */
-    public void setParent(StorageConfig storageConfig){
-        this.parent = storageConfig;
-    }
-
-    /**
-     * Adds a child to the list of children
-     *
-     * @param child child storage belonging to this storage
-     * @since 1.0
-     */
-    public void addChild(StorageConfig child){
-        this.children.add(child);
-    }
-
-    /**
-     * List of children storage
-     *
-     * @return list of children storage belonging to this storage
-     * @since 1.0
-     */
-    public List<StorageConfig> getChildren(){
-        return this.children;
-    }
-
-    /**
-     * Searches for the named collection in the storage configuration
-     *
-     * @param collectionName name of the collection
-     * @return true if storage contains a collection with specified name, false otherwise
-     * @since 1.0
-     */
-    public abstract boolean containsCollection(String collectionName);
-
-    /**
-     * Searches for an attribute in the named collection
-     *
-     * @param collectionName name of the collection
-     * @param attributeName name of the attribute to search for
-     * @return true if collection has the attribute, false otherwise
-     * @since 1.0
-     */
-    public abstract boolean containsAttribute(String collectionName, String attributeName);
-
-    /**
-     * Get primary key of the name collection
-     *
-     * @param collectionName name of the collection
-     * @return name of the attribute which is primary key of the named collection, null otherwise
-     * @since 1.0
-     */
-    public abstract String getPrimaryKey(String collectionName);
-
-    /**
-     * Set id of this storage
-     *
-     * @param id id of this storage
-     * @since 1.0
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * Set parent id of this storage
-     *
-     * @param parentId parent id of this storage
-     * @since 1.0
-     */
-    public void setParentId(String parentId) {
-        this.parentId = parentId;
-    }
-
-    /**
-     * Set engine to use when querying data of this storage
-     *
-     * @param engine engine to use when querying data of this storage
-     * @since 1.0
-     */
-    public void setEngine(String engine) {
-        this.engine = engine;
-    }
-
-    /**
-     * Set host of this storage
-     *
-     * @param host host of this storage
-     * @since 1.0
-     */
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    /**
-     *
-     *
-     * @param port port of this storage
-     * @since 1.0
-     */
-    public void setPort(String port) {
-        this.port = port;
-    }
-
-    /**
-     * Set database of this storage
-     *
-     * @param database database of this storage
-     * @since 1.0
-     */
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
-    /**
-     * Set username of this storage
-     *
-     * @param username username of this storage
-     * @since 1.0
-     */
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    /**
-     * Set password of this storage
-     *
-     * @param password password of this storage
-     * @since 1.0
-     */
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public static boolean parseStorageConfig(StorageConfig storageConfig, JSONObject storageConfigJsonObject, String[] validEngines, HashSet<String> visitedIds){
+    public static boolean parseStorageConfig(StorageConfig storageConfigContainer, JSONObject storageConfigJsonObject, String[] validEngines, HashSet<String> visitedIds) {
 
         //storage configurations
         String id;
@@ -358,19 +144,25 @@ public abstract class StorageConfig {
         String password;
 
         //configuration extraction
+
+        ////////////// parent ID ////////////
         parentId = (String) storageConfigJsonObject.get("parent");
 
+        //if parent Id is not specified, set it to null
         if (parentId == null || parentId.length() == 0)
             parentId = null;
 
+        ////////////// storage ID ////////////
         id = (String) storageConfigJsonObject.get("id");
+
+        //make sure storage id is specified
         if (id == null || id.length() == 0) {
             Log.log("Storage id attribute is not defined", componentName, Log.ERROR);
             return false;
         }
 
-        //make sure visited id is unique
-        if (visitedIds.contains(id)){
+        //make sure storage id is unique
+        if (visitedIds.contains(id)) {
             Log.log("Storage id: " + id + " is used before", componentName, Log.ERROR);
             return false;
         }
@@ -378,7 +170,10 @@ public abstract class StorageConfig {
         //if id is unique add it to visited ids
         visitedIds.add(id);
 
+        ////////////// engine ////////////
         engine = (String) storageConfigJsonObject.get("engine");
+
+        //make sure engine is specified
         if (engine == null || engine.length() == 0) {
             Log.log("Storage engine attribute is not defined for: " + id, componentName, Log.ERROR);
             return false;
@@ -387,57 +182,72 @@ public abstract class StorageConfig {
         //make sure specified engine is valid
         boolean isValid = false;
         for (String validEngine : validEngines)
-            if (validEngine.equals(engine)){
+            if (validEngine.equals(engine)) {
                 isValid = true;
                 break;
             }
-        if (!isValid){
+        if (!isValid) {
             Log.log("Specified engine: " + engine + " is not a valid query engine for: " + id, componentName, Log.ERROR);
             return false;
         }
 
+        ////////////// host ////////////
         host = (String) storageConfigJsonObject.get("host");
+
+        //make sure host is specified
         if (host == null || host.length() == 0) {
             Log.log("Storage host attribute is not defined for: " + id, componentName, Log.ERROR);
             return false;
         }
 
+        ////////////// port ////////////
         port = (String) storageConfigJsonObject.get("port");
+
+        //make sure port is specified
         if (port == null || port.length() == 0 || !isInteger(port)) {
             Log.log("Storage port attribute is not defined or is not a valid integer number for: " + id, componentName, Log.ERROR);
             return false;
         }
 
+        ////////////// database ////////////
         database = (String) storageConfigJsonObject.get("database");
+
+        //make sure database is specified
         if (database == null || database.length() == 0) {
             Log.log("Storage database name attribute is not defined for: " + id, componentName, Log.ERROR);
             return false;
         }
 
+        ////////////// username ////////////
         username = (String) storageConfigJsonObject.get("username");
+
+        //make sure username is specified
         if (username == null || username.length() == 0) {
             Log.log("Storage username attribute is not defined for: " + id, componentName, Log.ERROR);
             return false;
         }
 
+        ////////////// password ////////////
         password = (String) storageConfigJsonObject.get("password");
+
+        //make sure password is specified
         if (password == null || password.length() == 0) {
             Log.log("Storage password attribute is not defined for: " + id, componentName, Log.ERROR);
             return false;
         }
 
-        storageConfig.setId(id);
-        storageConfig.setParentId(parentId);
-        storageConfig.setEngine(engine);
-        storageConfig.setHost(host);
-        storageConfig.setPort(port);
-        storageConfig.setDatabase(database);
-        storageConfig.setUsername(username);
-        storageConfig.setPassword(password);
+        //configure container with extracted information
+        storageConfigContainer.setId(id);
+        storageConfigContainer.setParentId(parentId);
+        storageConfigContainer.setEngine(engine);
+        storageConfigContainer.setHost(host);
+        storageConfigContainer.setPort(port);
+        storageConfigContainer.setDatabase(database);
+        storageConfigContainer.setUsername(username);
+        storageConfigContainer.setPassword(password);
 
         return true;
     }
-
 
     /**
      * Checks if the specified string is a integer in form of [0-9]+
@@ -454,4 +264,232 @@ public abstract class StorageConfig {
 
         return true;
     }
+
+    /**
+     * Get host address
+     *
+     * @return host address of the storage
+     * @since 1.0
+     */
+    public String getHost() {
+        return host;
+    }
+
+    /**
+     * Set host address
+     *
+     * @param host host of this storage
+     * @since 1.0
+     */
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    /**
+     * Get port number
+     *
+     * @return port of the storage
+     * @since 1.0
+     */
+    public String getPort() {
+        return port;
+    }
+
+    /**
+     * Set port number
+     *
+     * @param port port of this storage
+     * @since 1.0
+     */
+    public void setPort(String port) {
+        this.port = port;
+    }
+
+    /**
+     * Get database name
+     *
+     * @return name of the database
+     * @since 1.0
+     */
+    public String getDatabase() {
+        return database;
+    }
+
+    /**
+     * Set database name
+     *
+     * @param database database of this storage
+     * @since 1.0
+     */
+    public void setDatabase(String database) {
+        this.database = database;
+    }
+
+    /**
+     * Get username credential
+     *
+     * @return username credential
+     * @since 1.0
+     */
+    public String getUsername() {
+        return username;
+    }
+
+    /**
+     * Set username
+     *
+     * @param username username of this storage
+     * @since 1.0
+     */
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    /**
+     * Get password credential
+     *
+     * @return password credential
+     * @since 1.0
+     */
+    public String getPassword() {
+        return password;
+    }
+
+    /**
+     * Set password
+     *
+     * @param password password of this storage
+     * @since 1.0
+     */
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    /**
+     * Get storage Identifier
+     *
+     * @return id of this storage
+     * @since 1.0
+     */
+    public String getId() {
+        return this.id;
+    }
+
+    /**
+     * Set storage id
+     *
+     * @param id id of this storage
+     * @since 1.0
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * Get parent id of this storage
+     *
+     * @return id of parent storage
+     * @since 1.0
+     */
+    public String getParentId() {
+        return this.parentId;
+    }
+
+    /**
+     * Set parent id of this storage
+     *
+     * @param parentId parent id of this storage
+     * @since 1.0
+     */
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
+
+    /**
+     * Get query Engine
+     *
+     * @return engine name to use when querying data of this storage
+     * @since 1.0
+     */
+    public String getEngine() {
+        return this.engine;
+    }
+
+    /**
+     * Set engine to use when querying data of this storage
+     *
+     * @param engine engine to use when querying data of this storage
+     * @since 1.0
+     */
+    public void setEngine(String engine) {
+        this.engine = engine;
+    }
+
+    /**
+     * Get parent storage
+     *
+     * @return parent storage of this storage in storage graph
+     * @since 1.0
+     */
+    public StorageConfig getParent() {
+        return this.parent;
+    }
+
+    /**
+     * Set parent storage
+     *
+     * @param storageConfig parent of this storage in storage graph
+     * @since 1.0
+     */
+    public void setParent(StorageConfig storageConfig) {
+        this.parent = storageConfig;
+    }
+
+    /**
+     * Adds a child storage system to the list of children
+     *
+     * @param child child storage belonging to this storage
+     * @since 1.0
+     */
+    public void addChild(StorageConfig child) {
+        this.children.add(child);
+    }
+
+    /**
+     * Get list of child storage systems
+     *
+     * @return list of children storage belonging to this storage
+     * @since 1.0
+     */
+    public List<StorageConfig> getChildren() {
+        return this.children;
+    }
+
+    /**
+     * Searches for the named collection in the storage configuration
+     *
+     * @param collectionName name of the collection
+     * @return true if storage contains a collection with specified name, false otherwise
+     * @since 1.0
+     */
+    public abstract boolean containsCollection(String collectionName);
+
+    /**
+     * Searches for an attribute in the named collection
+     *
+     * @param collectionName name of the collection
+     * @param attributeName  name of the attribute to search for
+     * @return true if collection has the attribute, false otherwise
+     * @since 1.0
+     */
+    public abstract boolean containsAttribute(String collectionName, String attributeName);
+
+    /**
+     * Get primary key of the name collection
+     *
+     * @param collectionName name of the collection
+     * @return name of the attribute which is primary key of the named collection, null otherwise
+     * @since 1.0
+     */
+    public abstract String getPrimaryKey(String collectionName);
 }
