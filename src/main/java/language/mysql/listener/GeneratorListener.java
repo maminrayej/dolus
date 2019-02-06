@@ -2,8 +2,8 @@ package language.mysql.listener;
 
 import base.HashMapBasedQueryTreeRecordManager;
 import common.Log;
-import config.MongoDBConfig;
-import config.MySqlConfig;
+import config.MongoDBConfigContainer;
+import config.MySqlConfigContainer;
 import language.mysql.utilities.MySqlParser;
 import language.mysql.utilities.MySqlParserBaseListener;
 
@@ -19,12 +19,12 @@ public class GeneratorListener extends MySqlParserBaseListener {
     /**
      * Contains MySQL meta data and configuration
      */
-    private MySqlConfig mySqlConfig;
+    private MySqlConfigContainer mySqlConfig;
 
     /**
      * Contains MongoDb meta data and configuration
      */
-    private MongoDBConfig mongoDBConfig;
+    private MongoDBConfigContainer mongoDBConfig;
 
     /**
      * Indicates whether generating phase was successful or not
@@ -39,7 +39,7 @@ public class GeneratorListener extends MySqlParserBaseListener {
      *
      * @since 1.0
      */
-    public GeneratorListener(HashMapBasedQueryTreeRecordManager recordManager, MySqlConfig mySqlConfig, MongoDBConfig mongoDBConfig) {
+    public GeneratorListener(HashMapBasedQueryTreeRecordManager recordManager, MySqlConfigContainer mySqlConfig, MongoDBConfigContainer mongoDBConfig) {
 
         this.recordManager = recordManager;
         this.mySqlConfig = mySqlConfig;

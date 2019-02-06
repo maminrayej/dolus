@@ -14,12 +14,12 @@ import java.util.List;
  * @version 1.0
  * @since 1.0
  */
-public abstract class StorageConfig {
+public abstract class StorageConfigContainer {
 
     /**
      * Component name to use in logging system
      */
-    private static final String componentName = "StorageConfig";
+    private static final String componentName = "StorageConfigContainer";
 
     /**
      * Unique id of the storage
@@ -39,12 +39,12 @@ public abstract class StorageConfig {
     /**
      * Parent storage of this storage in storage graph
      */
-    private StorageConfig parent;
+    private StorageConfigContainer parent;
 
     /**
      * List of child storage systems belonging to this storage
      */
-    private List<StorageConfig> children;
+    private List<StorageConfigContainer> children;
 
     /**
      * Host address of storage
@@ -69,7 +69,7 @@ public abstract class StorageConfig {
     private String password;
 
     /**
-     * Wraps a StorageConfig object around the configs of a storage system
+     * Wraps a StorageConfigContainer object around the configs of a storage system
      *
      * @param id       unique identifier of this storage
      * @param engine   engine to use when querying data of this storage
@@ -81,7 +81,7 @@ public abstract class StorageConfig {
      * @param password password credential
      * @since 1.0
      */
-    public StorageConfig(String id, String engine, String parentId, String host, String port, String database, String username, String password) {
+    public StorageConfigContainer(String id, String engine, String parentId, String host, String port, String database, String username, String password) {
 
         this.id = id;
         this.engine = engine;
@@ -97,7 +97,7 @@ public abstract class StorageConfig {
     }
 
     /**
-     * Wraps a StorageConfig object around the configs of a storage
+     * Wraps a StorageConfigContainer object around the configs of a storage
      *
      * @param id       unique identifier of this storage
      * @param engine   engine to use when querying data of this storage
@@ -108,7 +108,7 @@ public abstract class StorageConfig {
      * @param password password credential
      * @since 1.0
      */
-    public StorageConfig(String id, String engine, String host, String port, String database, String username, String password) {
+    public StorageConfigContainer(String id, String engine, String host, String port, String database, String username, String password) {
         this(id, engine, null, host, port, database, username, password);
     }
 
@@ -117,7 +117,7 @@ public abstract class StorageConfig {
      *
      * @since 1.0
      */
-    public StorageConfig() {
+    public StorageConfigContainer() {
         this(null, null, null, null, null, null, null, null);
     }
 
@@ -131,7 +131,7 @@ public abstract class StorageConfig {
      * @return true if parsing and storing configs was successful, false otherwise
      * @since 1.0
      */
-    public static boolean parseStorageConfig(StorageConfig storageConfigContainer, JSONObject storageConfigJsonObject, String[] validEngines, HashSet<String> visitedIds) {
+    public static boolean parseStorageConfig(StorageConfigContainer storageConfigContainer, JSONObject storageConfigJsonObject, String[] validEngines, HashSet<String> visitedIds) {
 
         //storage configurations
         String id;
@@ -431,18 +431,18 @@ public abstract class StorageConfig {
      * @return parent storage of this storage in storage graph
      * @since 1.0
      */
-    public StorageConfig getParent() {
+    public StorageConfigContainer getParent() {
         return this.parent;
     }
 
     /**
      * Set parent storage
      *
-     * @param storageConfig parent of this storage in storage graph
+     * @param storageConfigContainer parent of this storage in storage graph
      * @since 1.0
      */
-    public void setParent(StorageConfig storageConfig) {
-        this.parent = storageConfig;
+    public void setParent(StorageConfigContainer storageConfigContainer) {
+        this.parent = storageConfigContainer;
     }
 
     /**
@@ -451,7 +451,7 @@ public abstract class StorageConfig {
      * @param child child storage belonging to this storage
      * @since 1.0
      */
-    public void addChild(StorageConfig child) {
+    public void addChild(StorageConfigContainer child) {
         this.children.add(child);
     }
 
@@ -461,7 +461,7 @@ public abstract class StorageConfig {
      * @return list of children storage belonging to this storage
      * @since 1.0
      */
-    public List<StorageConfig> getChildren() {
+    public List<StorageConfigContainer> getChildren() {
         return this.children;
     }
 

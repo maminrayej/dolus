@@ -80,17 +80,17 @@ class ConfigParser {
     /**
      * Parses contents of the storage config file and stores extracted storage metadata
      *
-     * @param storageConfigContent   contents of the storage config file
-     * @param validStorageTypes      valid storage types
-     * @param validEngines           valid engines
-     * @param storageConfigList      list to store top level storage systems in
-     * @param topLevelStorageSystems contains mapping between top level storage systems ids and their storage config objects
-     * @param childStorageSystems    contains list of storage systems which are not top level(have parents)
+     * @param storageConfigContent       contents of the storage config file
+     * @param validStorageTypes          valid storage types
+     * @param validEngines               valid engines
+     * @param storageConfigContainerList list to store top level storage systems in
+     * @param topLevelStorageSystems     contains mapping between top level storage systems ids and their storage config objects
+     * @param childStorageSystems        contains list of storage systems which are not top level(have parents)
      * @return true if parsing was successful and meta data stored successfully, false otherwise
      * @since 1.0
      */
     static boolean parseStorageConfigFileContents(String storageConfigContent, String[] validStorageTypes, String[] validEngines,
-                                                  List<StorageConfig> storageConfigList, HashMap<String, StorageConfig> topLevelStorageSystems, ArrayList<StorageConfig> childStorageSystems) {
+                                                  List<StorageConfigContainer> storageConfigContainerList, HashMap<String, StorageConfigContainer> topLevelStorageSystems, ArrayList<StorageConfigContainer> childStorageSystems) {
 
         //initialize a json parser
         JSONParser parser = new JSONParser();
@@ -144,10 +144,10 @@ class ConfigParser {
                 if (storageType.equals("mysql")) {
 
                     //initialize a new MySQL config container
-                    MySqlConfig mySqlConfigContainer = new MySqlConfig();
+                    MySqlConfigContainer mySqlConfigContainer = new MySqlConfigContainer();
 
                     //parse MySQL config
-                    boolean successful = MySqlConfig.parseMySQLConfig(mySqlConfigContainer, storageConfigJsonObject, validEngines, visitedIds);
+                    boolean successful = MySqlConfigContainer.parseMySQLConfig(mySqlConfigContainer, storageConfigJsonObject, validEngines, visitedIds);
                     if (!successful)
                         return false;
 
@@ -158,16 +158,16 @@ class ConfigParser {
                         topLevelStorageSystems.put(mySqlConfigContainer.getId(), mySqlConfigContainer);
 
                         //add storage to storage graph
-                        storageConfigList.add(mySqlConfigContainer);
+                        storageConfigContainerList.add(mySqlConfigContainer);
 
                     } else
                         childStorageSystems.add(mySqlConfigContainer);
 
                 } else if (storageType.equals("mongodb")) {
 
-                    MongoDBConfig mongoDBConfigContainer = new MongoDBConfig();
+                    MongoDBConfigContainer mongoDBConfigContainer = new MongoDBConfigContainer();
 
-                    boolean successful = MongoDBConfig.parseMongoDBConfig(mongoDBConfigContainer, storageConfigJsonObject, validEngines, visitedIds);
+                    boolean successful = MongoDBConfigContainer.parseMongoDBConfig(mongoDBConfigContainer, storageConfigJsonObject, validEngines, visitedIds);
                     if (!successful)
                         return false;
 
@@ -178,7 +178,7 @@ class ConfigParser {
                         topLevelStorageSystems.put(mongoDBConfigContainer.getId(), mongoDBConfigContainer);
 
                         //add storage to storage graph
-                        storageConfigList.add(mongoDBConfigContainer);
+                        storageConfigContainerList.add(mongoDBConfigContainer);
 
                     } else
                         childStorageSystems.add(mongoDBConfigContainer);

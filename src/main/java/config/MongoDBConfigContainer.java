@@ -14,12 +14,12 @@ import java.util.HashSet;
  * @version 1.0
  * @since 1.0
  */
-public class MongoDBConfig extends StorageConfig {
+public class MongoDBConfigContainer extends StorageConfigContainer {
 
     /**
      * Component name to use in the logging system
      */
-    private static final String componentName = "MongoDBConfig";
+    private static final String componentName = "MongoDBConfigContainer";
 
     /**
      * Contains collection names
@@ -32,7 +32,7 @@ public class MongoDBConfig extends StorageConfig {
     private HashMap<String, String> primaryKeys;
 
     /**
-     * Wraps a MongoDBConfig object around the configs of a MongoDB storage
+     * Wraps a MongoDBConfigContainer object around the configs of a MongoDB storage
      *
      * @param collections set of collection names
      * @param primaryKeys mapping between collection names and their primary keys
@@ -46,8 +46,8 @@ public class MongoDBConfig extends StorageConfig {
      * @param password    password credentials
      * @since 1.0
      */
-    public MongoDBConfig(HashSet<String> collections, HashMap<String,String> primaryKeys,
-                         String id, String engine, String parentId, String host, String port, String database, String username, String password) {
+    public MongoDBConfigContainer(HashSet<String> collections, HashMap<String,String> primaryKeys,
+                                  String id, String engine, String parentId, String host, String port, String database, String username, String password) {
 
         super(id, engine, parentId, host, port, database, username, password);
         this.collections = collections;
@@ -56,7 +56,7 @@ public class MongoDBConfig extends StorageConfig {
     }
 
     /**
-     * Wraps a MongoDBConfig object around the configs of a MongoDB storage
+     * Wraps a MongoDBConfigContainer object around the configs of a MongoDB storage
      *
      * @param collections set of collection names
      * @param primaryKeys mapping between collection names and their primary keys
@@ -69,8 +69,8 @@ public class MongoDBConfig extends StorageConfig {
      * @param password    password credentials
      * @since 1.0
      */
-    public MongoDBConfig(HashSet<String> collections, HashMap<String,String> primaryKeys,
-                         String id, String engine, String host, String port, String database, String username, String password) {
+    public MongoDBConfigContainer(HashSet<String> collections, HashMap<String,String> primaryKeys,
+                                  String id, String engine, String host, String port, String database, String username, String password) {
 
         super(id, engine, host, port, database, username, password);
         this.collections = collections;
@@ -78,7 +78,7 @@ public class MongoDBConfig extends StorageConfig {
 
     }
 
-    public MongoDBConfig(){
+    public MongoDBConfigContainer(){
         super();
 
         this.collections = null;
@@ -108,9 +108,9 @@ public class MongoDBConfig extends StorageConfig {
         this.primaryKeys = primaryKeys;
     }
 
-    public static boolean parseMongoDBConfig(MongoDBConfig mongoDBConfig, JSONObject mongoDBConfigJSONObject, String[] engines, HashSet<String> visitedIds) {
+    public static boolean parseMongoDBConfig(MongoDBConfigContainer mongoDBConfig, JSONObject mongoDBConfigJSONObject, String[] engines, HashSet<String> visitedIds) {
 
-        boolean successful = StorageConfig.parseStorageConfig(mongoDBConfig, mongoDBConfigJSONObject, engines, visitedIds);
+        boolean successful = StorageConfigContainer.parseStorageConfig(mongoDBConfig, mongoDBConfigJSONObject, engines, visitedIds);
 
         if (!successful){
             Log.log("MySQL storage config parsing failed", componentName, Log.ERROR);

@@ -14,12 +14,12 @@ import java.util.HashSet;
  * @version 1.0
  * @since 1.0
  */
-public class MySqlConfig extends StorageConfig {
+public class MySqlConfigContainer extends StorageConfigContainer {
 
     /**
      * Component name to use in the logging system
      */
-    private static final String componentName = "MySqlConfig";
+    private static final String componentName = "MySqlConfigContainer";
 
     /**
      * Contains information about each table
@@ -33,7 +33,7 @@ public class MySqlConfig extends StorageConfig {
     private HashMap<String, String> primaryKeys;
 
     /**
-     * Wraps a MySqlConfig object around configs of a MySQL storage
+     * Wraps a MySqlConfigContainer object around configs of a MySQL storage
      *
      * @param tablesInfo  information about tables of the storage
      * @param primaryKeys mapping between table names and their primary keys
@@ -47,8 +47,8 @@ public class MySqlConfig extends StorageConfig {
      * @param password    password credential
      * @since 1.0
      */
-    public MySqlConfig(HashMap<String, HashSet<String>> tablesInfo, HashMap<String, String> primaryKeys,
-                       String id, String engine, String parentId, String host, String port, String database, String username, String password) {
+    public MySqlConfigContainer(HashMap<String, HashSet<String>> tablesInfo, HashMap<String, String> primaryKeys,
+                                String id, String engine, String parentId, String host, String port, String database, String username, String password) {
 
         super(id, engine, parentId, host, port, database, username, password);
 
@@ -58,7 +58,7 @@ public class MySqlConfig extends StorageConfig {
     }
 
     /**
-     * Wraps a MySqlConfig object around configs of a MySQL storage
+     * Wraps a MySqlConfigContainer object around configs of a MySQL storage
      *
      * @param tablesInfo  information about tables of the storage
      * @param primaryKeys mapping between table names and their primary keys
@@ -71,8 +71,8 @@ public class MySqlConfig extends StorageConfig {
      * @param password    password credential
      * @since 1.0
      */
-    public MySqlConfig(HashMap<String, HashSet<String>> tablesInfo, HashMap<String, String> primaryKeys,
-                       String id, String engine, String host, String port, String database, String username, String password) {
+    public MySqlConfigContainer(HashMap<String, HashSet<String>> tablesInfo, HashMap<String, String> primaryKeys,
+                                String id, String engine, String host, String port, String database, String username, String password) {
 
         super(id, engine, host, port, database, username, password);
 
@@ -81,7 +81,7 @@ public class MySqlConfig extends StorageConfig {
 
     }
 
-    public MySqlConfig(){
+    public MySqlConfigContainer(){
 
         super();
 
@@ -119,9 +119,9 @@ public class MySqlConfig extends StorageConfig {
         this.primaryKeys = primaryKeys;
     }
 
-    public static boolean parseMySQLConfig(MySqlConfig mySqlConfig, JSONObject mySqlConfigObject, String[] engines, HashSet<String> visitedIds){
+    public static boolean parseMySQLConfig(MySqlConfigContainer mySqlConfig, JSONObject mySqlConfigObject, String[] engines, HashSet<String> visitedIds){
 
-        boolean successful = StorageConfig.parseStorageConfig(mySqlConfig, mySqlConfigObject, engines, visitedIds);
+        boolean successful = StorageConfigContainer.parseStorageConfig(mySqlConfig, mySqlConfigObject, engines, visitedIds);
 
         if (!successful){
             Log.log("MySQL storage config parsing failed", componentName, Log.ERROR);

@@ -53,7 +53,7 @@ public class ConfigUtilities {
      * this data structure only contains mysql1, mongo1, mysql2
      * other storage systems can be accessed by these three.
      */
-    private static List<StorageConfig> storageConfigList;
+    private static List<StorageConfigContainer> storageConfigContainerList;
 
     /**
      * Flag indicates whether main config file loaded successfully or not
@@ -177,7 +177,7 @@ public class ConfigUtilities {
 
         ////////////////////// Parsing phase //////////////////////////
         //initialize storage config list
-        storageConfigList = new ArrayList<>();
+        storageConfigContainerList = new ArrayList<>();
 
         /*
          * once scanning the storage config file is not enough to link parent and child storage systems
@@ -188,22 +188,22 @@ public class ConfigUtilities {
          * children are stored in a list
          */
         //Hash map of top level storage systems: storage id -> storage object
-        HashMap<String, StorageConfig> topLevelStorageSystems = new HashMap<>();
+        HashMap<String, StorageConfigContainer> topLevelStorageSystems = new HashMap<>();
 
         //List of storage systems which have parents
-        ArrayList<StorageConfig> childStorageSystems = new ArrayList<>();
+        ArrayList<StorageConfigContainer> childStorageSystems = new ArrayList<>();
 
         //parse storage config content and extract configurations
-        storageConfigLoaded = ConfigParser.parseStorageConfigFileContents(storageConfigContent, validStorageTypes, validEngines, storageConfigList, topLevelStorageSystems, childStorageSystems);
+        storageConfigLoaded = ConfigParser.parseStorageConfigFileContents(storageConfigContent, validStorageTypes, validEngines, storageConfigContainerList, topLevelStorageSystems, childStorageSystems);
 
         ////////////////////// Construct phase //////////////////////////
         //create storage graph by connecting child and parent storage systems together
-        for (StorageConfig child : childStorageSystems) {
+        for (StorageConfigContainer child : childStorageSystems) {
 
             String parentId = child.getParentId();
 
             //find parent storage among top level storage systems
-            StorageConfig parent = topLevelStorageSystems.get(parentId);
+            StorageConfigContainer parent = topLevelStorageSystems.get(parentId);
 
             //check whether parent id really exists
             if (parent == null) {
@@ -258,7 +258,7 @@ public class ConfigUtilities {
      * @return storage containing the named collection if found, null otherwise
      * @since 1.0
      */
-    public static StorageConfig findStorage(String collectionName, String attributeName) {
+    public static StorageConfigContainer findStorage(String collectionName, String attributeName) {
 
         //make sure storage config is loaded successfully
         if (!storageConfigLoaded) {
@@ -280,12 +280,12 @@ public class ConfigUtilities {
          */
 
         //add top level storage systems to queue
-        Queue<StorageConfig> queue = new LinkedList<>(storageConfigList);
+        Queue<StorageConfigContainer> queue = new LinkedList<>(storageConfigContainerList);
 
         //search the storage graph using BFS
         while (!queue.isEmpty()) {
 
-            StorageConfig current = queue.remove();
+            StorageConfigContainer current = queue.remove();
 
             //if current storage contains collection search for attribute in its sub tree
             if (current.containsCollection(collectionName)) {

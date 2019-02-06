@@ -1,8 +1,8 @@
 package language.mysql.visitor;
 
 import base.HashMapBasedQueryTreeRecordManager;
-import config.MongoDBConfig;
-import config.MySqlConfig;
+import config.MongoDBConfigContainer;
+import config.MySqlConfigContainer;
 import language.mysql.utilities.MySqlParser.AtomTableItemContext;
 import language.mysql.utilities.MySqlParser.FromClauseContext;
 import language.mysql.utilities.MySqlParser.FullColumnNameContext;
@@ -37,12 +37,12 @@ public class TranslatorVisitor {
     /**
      * Meta data and configurations of MySQL
      */
-    private MySqlConfig mySqlConfig;
+    private MySqlConfigContainer mySqlConfig;
 
     /**
      * Meta data and configuration of MongoDB
      */
-    private MongoDBConfig mongoDBConfig;
+    private MongoDBConfigContainer mongoDBConfig;
 
     /**
      * Indicates whether the first select clause is reached or not
@@ -62,7 +62,7 @@ public class TranslatorVisitor {
     private Stack<Integer> selectQueryDepthStack;
 
     public TranslatorVisitor(ParseTree root, HashMapBasedQueryTreeRecordManager recordManager,
-                             MySqlConfig mySqlConfig, MongoDBConfig mongoDBConfig) {
+                             MySqlConfigContainer mySqlConfig, MongoDBConfigContainer mongoDBConfig) {
 
         this.root = root;
         this.recordManager = recordManager;
