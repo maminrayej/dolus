@@ -5,7 +5,6 @@ import common.Log;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * This class is responsible for loading config files of Dolus
@@ -292,12 +291,11 @@ public class ConfigUtilities {
             if (current.containsCollection(collectionName)) {
                 if (current.containsAttribute(collectionName, attributeName))
                     return current;
-                else{
+                else {
                     queue.clear();
                     queue.addAll(current.getChildren());
                 }
-            }
-            else
+            } else
                 queue.addAll(current.getChildren());
         }
 
