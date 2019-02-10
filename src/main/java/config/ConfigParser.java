@@ -140,49 +140,44 @@ class ConfigParser {
                     return false;
                 }
 
+                //storage config container to be configured
+                StorageConfigContainer storageConfigContainer;
+
                 //call appropriate parser for each storage based on their type
                 if (storageType.equals("mysql")) {
 
                     //initialize a new MySQL config container
-                    MySqlConfigContainer mySqlConfigContainer = new MySqlConfigContainer();
+                    storageConfigContainer = new MySqlConfigContainer();
 
                     //parse MySQL config
-                    boolean successful = MySqlConfigContainer.parseMySQLConfig(mySqlConfigContainer, storageConfigJsonObject, validEngines, visitedIds);
+                    boolean successful = MySqlConfigContainer.parseMySQLConfig((MySqlConfigContainer) storageConfigContainer, storageConfigJsonObject, validEngines, visitedIds);
+
                     if (!successful)
                         return false;
-
-                    //check whether storage is top level or not
-                    if (mySqlConfigContainer.getParentId() == null) {
-
-                        //add storage to top level storage systems
-                        topLevelStorageSystems.put(mySqlConfigContainer.getId(), mySqlConfigContainer);
-
-                        //add storage to storage graph
-                        storageConfigContainerList.add(mySqlConfigContainer);
-
-                    } else
-                        childStorageSystems.add(mySqlConfigContainer);
 
                 } else if (storageType.equals("mongodb")) {
 
-                    MongoDBConfigContainer mongoDBConfigContainer = new MongoDBConfigContainer();
+                    storageConfigContainer = new MongoDBConfigContainer();
 
-                    boolean successful = MongoDBConfigContainer.parseMongoDBConfig(mongoDBConfigContainer, storageConfigJsonObject, validEngines, visitedIds);
+                    boolean successful = MongoDBConfigContainer.parseMongoDBConfig((MongoDBConfigContainer) storageConfigContainer, storageConfigJsonObject, validEngines, visitedIds);
+
                     if (!successful)
                         return false;
 
-                    //check whether storage is top level or not
-                    if (mongoDBConfigContainer.getParentId() == null) {
+                } else
+                    return false;
 
-                        //add storage to top level storage systems
-                        topLevelStorageSystems.put(mongoDBConfigContainer.getId(), mongoDBConfigContainer);
+                //check whether storage is top level or not
+                if (storageConfigContainer.getParentId() == null) {
 
-                        //add storage to storage graph
-                        storageConfigContainerList.add(mongoDBConfigContainer);
+                    //add storage to top level storage systems
+                    topLevelStorageSystems.put(storageConfigContainer.getId(), storageConfigContainer);
 
-                    } else
-                        childStorageSystems.add(mongoDBConfigContainer);
-                }
+                    //add storage to storage graph
+                    storageConfigContainerList.add(storageConfigContainer);
+
+                } else
+                    childStorageSystems.add(storageConfigContainer);
 
             }
 
