@@ -4,7 +4,7 @@ public class Lock {
 
     private String  database;
     private String  table;
-    private int     pk;
+    private Integer pk;
     private int     type;
 
     public Lock(String database, String table, int pk, int type) {
@@ -35,11 +35,11 @@ public class Lock {
         this.table = table;
     }
 
-    public int getPk() {
+    public Integer getPk() {
         return pk;
     }
 
-    public void setPk(int pk) {
+    public void setPk(Integer pk) {
         this.pk = pk;
     }
 
