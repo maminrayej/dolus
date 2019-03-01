@@ -1,20 +1,20 @@
 package manager.lock;
 
-public class LockRequest {
+public class Lock {
 
     private String  database;
     private String  table;
     private int     pk;
     private int     type;
 
-    public LockRequest(String database, String table, int pk, int type) {
+    public Lock(String database, String table, int pk, int type) {
         this.database = database;
         this.table = table;
         this.pk = pk;
         this.type = type;
     }
 
-    public LockRequest(String database, int type) {
+    public Lock(String database, int type) {
         this.database = database;
         this.type = type;
     }
