@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import manager.transaction.Transaction;
 
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 /**
@@ -17,9 +19,9 @@ import java.util.Queue;
 public class LockTreeElement {
 
     /**
-     * Queue of transactions which their request to access this element is granted
+     * List of transactions which their request to access this element is granted
      */
-    private Queue<QueueElement> grantedQueue;
+    private List<QueueElement> grantedList;
 
     /**
      * Queue of transactions which their request to access this element is not granted
@@ -41,7 +43,7 @@ public class LockTreeElement {
      */
     public LockTreeElement() {
 
-        this.grantedQueue = new LinkedList<>();
+        this.grantedList = new LinkedList<>();
 
         this.waitingQueue = new LinkedList<>();
     }
@@ -58,7 +60,9 @@ public class LockTreeElement {
 
         QueueElement queueElement = new QueueElement(transaction, originalLock, appliedLock);
 
-        grantedQueue.add(queueElement);
+        grantedList.add(queueElement);
+
+        grantedList.sort(new QueueElementComparator());
     }
 
     /**

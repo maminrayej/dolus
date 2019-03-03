@@ -51,20 +51,20 @@ public class LockManager {
         Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                lockManager.lock(transaction1, new Lock("database1", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("database1", LockTypes.SHARED));
             }
         });
 
         Thread thread2 = new Thread(new Runnable() {
             @Override
             public void run() {
-                lockManager.lock(transaction2, new Lock("database1", LockTypes.SHARED));
+                lockManager.lock(transaction2, new Lock("database1", LockTypes.INTENT_SHARED));
             }
         });
         Thread thread3 = new Thread(new Runnable() {
             @Override
             public void run() {
-                lockManager.lock(transaction3, new Lock("database1", LockTypes.EXCLUSIVE));
+                lockManager.lock(transaction3, new Lock("database1", LockTypes.UPDATE));
             }
         });
         thread1.start();
