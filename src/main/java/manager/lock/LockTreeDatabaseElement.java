@@ -14,7 +14,7 @@ public class LockTreeDatabaseElement extends LockTreeElement {
     /**
      * Maps table name to its element
      */
-    private HashMap<Integer,LockTreeElement> tables;
+    private HashMap<String,LockTreeTableElement> tableElements;
 
     /**
      * Default constructor
@@ -23,7 +23,22 @@ public class LockTreeDatabaseElement extends LockTreeElement {
      */
     public LockTreeDatabaseElement() {
 
-        this.tables = new HashMap<>();
+        this.tableElements = new HashMap<>();
+    }
+
+    public LockTreeTableElement getTableElement(String tableName) {
+
+        return tableElements.get(tableName);
+    }
+
+    public void putTableElement(String tableName, LockTreeTableElement tableElement) {
+
+        tableElements.put(tableName, tableElement);
+    }
+
+    public HashMap<String, LockTreeTableElement> getTableElementsMap() {
+
+        return tableElements;
     }
 
 }

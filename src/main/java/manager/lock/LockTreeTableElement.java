@@ -14,7 +14,7 @@ public class LockTreeTableElement extends LockTreeElement {
     /**
      * Maps record id to its element
      */
-    private HashMap<Integer,LockTreeElement> records;
+    private HashMap<Integer,LockTreeElement> recordElements;
 
     /**
      * Default constructor
@@ -23,6 +23,16 @@ public class LockTreeTableElement extends LockTreeElement {
      */
     public LockTreeTableElement() {
 
-        this.records = new HashMap<>();
+        this.recordElements = new HashMap<>();
+    }
+
+    public LockTreeElement getRecordElement(Integer recordId) {
+
+        return recordElements.get(recordId);
+    }
+
+    public void putRecordElement(Integer recordId, LockTreeElement recordElement) {
+
+        recordElements.put(recordId, recordElement);
     }
 }

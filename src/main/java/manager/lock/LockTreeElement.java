@@ -1,12 +1,14 @@
 package manager.lock;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import manager.transaction.Transaction;
 
 import java.util.LinkedList;
 import java.util.Queue;
 
 /**
- * This class represents basic element in lock tree
+ * This class represents basic element in originalLock tree
  *
  * @author m.amin.rayej
  * @version 1.0
@@ -20,10 +22,10 @@ public class LockTreeElement {
     private Queue<QueueElement> requestQueue;
 
     /**
-     * Keeps current active lock type. if a compatible lock acquires this element but
-     * is a more restrictive lock, current active lock type should be updated to type of the new lock.
-     * for example if a transaction A holds an IS lock on this element and transaction B requests an IX lock
-     * of this element, request of transaction B will be granted and active lock type will be set to IX.
+     * Keeps current active originalLock type. if a compatible originalLock acquires this element but
+     * is a more restrictive originalLock, current active originalLock type should be updated to type of the new originalLock.
+     * for example if a transaction A holds an IS originalLock on this element and transaction B requests an IX originalLock
+     * of this element, request of transaction B will be granted and active originalLock type will be set to IX.
      */
     private int currentActiveLockType;
 
@@ -39,23 +41,24 @@ public class LockTreeElement {
     /**
      * Adds a transaction to the waiting queue
      *
-     * @param transaction transaction to be added to waiting queue
-     * @param lock requested lock by transaction on this element
+     * @param transaction  transaction to be added to waiting queue
+     * @param originalLock original lock requested by transaction
+     * @param appliedLock  lock that must applied to this element
      * @since 1.0
      */
-    public void addToQueue(Transaction transaction, Lock lock){
+    public void addToQueue(Transaction transaction, Lock originalLock, Lock appliedLock) {
 
-        //wrap a QueueElement around transactions and its requested lock
-        QueueElement queueElement = new QueueElement(transaction, lock);
+        //wrap a QueueElement around transactions and its requested originalLock
+        QueueElement queueElement = new QueueElement(transaction, originalLock, appliedLock);
 
         //add them to waiting queue
         requestQueue.add(queueElement);
     }
 
     /**
-     * Get current active lock type
+     * Get current active originalLock type
      *
-     * @return current active lock type
+     * @return current active originalLock type
      * @since 1.o
      */
     public int getCurrentActiveLockType() {
@@ -63,17 +66,23 @@ public class LockTreeElement {
     }
 
     /**
-     * Set current active lock type
+     * Set current active originalLock type
      *
-     * @param currentActiveLockType lock type to be set as current active type
+     * @param currentActiveLockType originalLock type to be set as current active type
      * @since 1.0
      */
     public void setCurrentActiveLockType(int currentActiveLockType) {
         this.currentActiveLockType = currentActiveLockType;
     }
 
+    @Override
+    public String toString() {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson.toJson(requestQueue) + currentActiveLockType;
+    }
+
     /**
-     * This class is a container for transaction and its requested lock and
+     * This class is a container for transaction and its requested originalLock and
      *
      * @author m.amin.rayej
      * @version 1.0
@@ -83,18 +92,21 @@ public class LockTreeElement {
 
 
         private Transaction transaction;
-        private Lock        lock;
+        private Lock originalLock;
+        private Lock appliedLock;
 
         /**
          * Constructor
          *
-         * @param transaction transaction
-         * @param lock requested lock by transaction
+         * @param transaction  transaction
+         * @param originalLock original requested lock by transaction
+         * @param appliedLock  lock this is applied to this element
          * @since 1.0
          */
-        public QueueElement(Transaction transaction, Lock lock) {
+        public QueueElement(Transaction transaction, Lock originalLock, Lock appliedLock) {
             this.transaction = transaction;
-            this.lock = lock;
+            this.originalLock = originalLock;
+            this.appliedLock = appliedLock;
         }
 
         /**
@@ -118,23 +130,43 @@ public class LockTreeElement {
         }
 
         /**
-         * Get lock
+         * Get originalLock
          *
-         * @return lock
+         * @return originalLock
          * @since 1.0
          */
-        public Lock getLock() {
-            return lock;
+        public Lock getOriginalLock() {
+            return originalLock;
         }
 
         /**
-         * Set lock
+         * Set originalLock
          *
-         * @param lock lock
+         * @param originalLock originalLock
          * @since 1.0
          */
-        public void setLock(Lock lock) {
-            this.lock = lock;
+        public void setOriginalLock(Lock originalLock) {
+            this.originalLock = originalLock;
+        }
+
+        /**
+         * Get applied lock
+         *
+         * @return applied lock
+         * @since 1.0
+         */
+        public Lock getAppliedLock() {
+            return appliedLock;
+        }
+
+        /**
+         * Set applied lock
+         *
+         * @param appliedLock lock to apply on this element
+         * @since 1.0
+         */
+        public void setAppliedLock(Lock appliedLock) {
+            this.appliedLock = appliedLock;
         }
     }
 }

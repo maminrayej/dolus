@@ -5,8 +5,15 @@ import manager.lock.Lock;
 public class Transaction {
 
 
+    private int transactionId;
+
+    public Transaction(int transactionId)
+    {
+        this.transactionId = transactionId;
+    }
+
     public int getTransactionId(){
-        return 0;
+        return this.transactionId;
     }
 
     public void lockIsGranted(Lock lock) {
