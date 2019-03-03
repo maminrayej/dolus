@@ -1,7 +1,5 @@
 package manager.lock;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import common.Log;
 import manager.lock.LockConstants.LockLevels;
 import manager.lock.LockConstants.LockTypes;
@@ -66,7 +64,7 @@ public class LockManager {
         Thread thread3 = new Thread(new Runnable() {
             @Override
             public void run() {
-                lockManager.lock(transaction3, new Lock("database1", LockTypes.INTENT_SHARED));
+                lockManager.lock(transaction3, new Lock("database1", LockTypes.EXCLUSIVE));
             }
         });
         thread1.start();
@@ -200,7 +198,7 @@ public class LockManager {
             lockTree.put(databaseName, databaseElement);
 
             //add transaction to waiting queue of this element
-            databaseElement.addToQueue(transaction, originalLock, appliedLock);
+            databaseElement.addGranted(transaction, originalLock, appliedLock);
 
             //set current active lock type to requested type
             databaseElement.setCurrentActiveLockType(lockType);
@@ -256,7 +254,7 @@ public class LockManager {
             databaseElement.putTableElement(tableName, tableElement);
 
             //add transaction to the queue
-            tableElement.addToQueue(transaction, originalLock, appliedLock);
+            tableElement.addGranted(transaction, originalLock, appliedLock);
 
             //set current active lock type of the element
             tableElement.setCurrentActiveLockType(lockType);
@@ -314,7 +312,7 @@ public class LockManager {
             tableElement.putRecordElement(recordId, recordElement);
 
             //add transaction to queue
-            recordElement.addToQueue(transaction, lock, lock);
+            recordElement.addGranted(transaction, lock, lock);
 
             //set current active lock type
             recordElement.setCurrentActiveLockType(lockType);
@@ -351,21 +349,21 @@ public class LockManager {
             if (currentActiveLockType == LockTypes.SHARED) {
 
                 //add transaction to waiting queue of this element
-                element.addToQueue(transaction, originalLock, appliedLock);
+                element.addGranted(transaction, originalLock, appliedLock);
 
                 //lock is granted
                 return true;
             } else if (currentActiveLockType == LockTypes.UPDATE) {
 
                 //add transaction to waiting queue of this element
-                element.addToQueue(transaction, originalLock, appliedLock);
+                element.addGranted(transaction, originalLock, appliedLock);
 
                 //lock is granted
                 return true;
             } else if (currentActiveLockType == LockTypes.INTENT_SHARED) {
 
                 //add transaction to waiting queue of this element
-                element.addToQueue(transaction, originalLock, appliedLock);
+                element.addGranted(transaction, originalLock, appliedLock);
 
                 //Shared lock is more restrictive than Intent shared
                 //so current active lock type on this element must change to Shared
@@ -377,7 +375,7 @@ public class LockManager {
 
             //lock is incompatible with current active lock
             //add transaction to waiting queue of this element
-            element.addToQueue(transaction, originalLock, appliedLock);
+            element.addWaiting(transaction, originalLock, appliedLock);
 
             //lock is not granted
             return false;
@@ -386,7 +384,7 @@ public class LockManager {
 
             //Exclusive lock is not compatible with any lock
             //add transaction to waiting queue of this element
-            element.addToQueue(transaction, originalLock, appliedLock);
+            element.addWaiting(transaction, originalLock, appliedLock);
 
             //lock is not granted
             return false;
@@ -398,7 +396,7 @@ public class LockManager {
             if (currentActiveLockType == LockTypes.INTENT_SHARED) {
 
                 //add transaction to waiting queue of this element
-                element.addToQueue(transaction, originalLock, appliedLock);
+                element.addGranted(transaction, originalLock, appliedLock);
 
                 //Update lock is more restrictive so current active lock type must set to Update
                 element.setCurrentActiveLockType(LockTypes.UPDATE);
@@ -408,7 +406,7 @@ public class LockManager {
             } else if (currentActiveLockType == LockTypes.SHARED) {
 
                 //add transaction to waiting queue of this element
-                element.addToQueue(transaction, originalLock, appliedLock);
+                element.addGranted(transaction, originalLock, appliedLock);
 
                 //Update lock is more restrictive so current active lock type must set to Update
                 element.setCurrentActiveLockType(LockTypes.UPDATE);
@@ -419,7 +417,7 @@ public class LockManager {
 
             //lock is incompatible
             //add transaction to waiting queue of this element
-            element.addToQueue(transaction, originalLock, appliedLock);
+            element.addWaiting(transaction, originalLock, appliedLock);
 
             //lock is not granted
             return false;
@@ -431,14 +429,14 @@ public class LockManager {
             if (currentActiveLockType == LockTypes.EXCLUSIVE) {
 
                 //add transaction to waiting queue of this element
-                element.addToQueue(transaction, originalLock, appliedLock);
+                element.addWaiting(transaction, originalLock, appliedLock);
 
                 //lock is not granted
                 return false;
             } else {
 
                 //add transaction to waiting queue of this element
-                element.addToQueue(transaction, originalLock, appliedLock);
+                element.addGranted(transaction, originalLock, appliedLock);
 
                 //lock is granted
                 return true;
@@ -451,7 +449,7 @@ public class LockManager {
             if (currentActiveLockType == LockTypes.INTENT_SHARED) {
 
                 //add transaction to waiting queue of this element
-                element.addToQueue(transaction, originalLock, appliedLock);
+                element.addGranted(transaction, originalLock, appliedLock);
 
                 //Intent Exclusive is more restrictive than Intent Shared, so current active lock type must set to Intent Exclusive
                 element.setCurrentActiveLockType(LockTypes.INTENT_EXCLUSIVE);
@@ -461,7 +459,7 @@ public class LockManager {
             } else if (currentActiveLockType == LockTypes.INTENT_EXCLUSIVE) {
 
                 //add transaction to waiting queue of this element
-                element.addToQueue(transaction, originalLock, appliedLock);
+                element.addGranted(transaction, originalLock, appliedLock);
 
                 //lock is granted
                 return true;
@@ -469,7 +467,7 @@ public class LockManager {
 
             //if lock is incompatible
             //add transaction to waiting queue of this element
-            element.addToQueue(transaction, originalLock, appliedLock);
+            element.addWaiting(transaction, originalLock, appliedLock);
 
             //lock is not granted
             return false;

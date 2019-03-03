@@ -17,9 +17,14 @@ import java.util.Queue;
 public class LockTreeElement {
 
     /**
-     * Waiting queue of transactions that requested this element
+     * Queue of transactions which their request to access this element is granted
      */
-    private Queue<QueueElement> requestQueue;
+    private Queue<QueueElement> grantedQueue;
+
+    /**
+     * Queue of transactions which their request to access this element is not granted
+     */
+    private Queue<QueueElement> waitingQueue;
 
     /**
      * Keeps current active originalLock type. if a compatible originalLock acquires this element but
@@ -35,24 +40,40 @@ public class LockTreeElement {
      * @since 1.0
      */
     public LockTreeElement() {
-        this.requestQueue = new LinkedList<>();
+
+        this.grantedQueue = new LinkedList<>();
+
+        this.waitingQueue = new LinkedList<>();
     }
 
     /**
-     * Adds a transaction to the waiting queue
+     * Adds a granted transaction to granted list
+     *
+     * @param transaction  transaction to be added to granted queue
+     * @param originalLock original lock requested by transaction
+     * @param appliedLock  lock that must applied to this element
+     * @since 1.0
+     */
+    public void addGranted(Transaction transaction, Lock originalLock, Lock appliedLock) {
+
+        QueueElement queueElement = new QueueElement(transaction, originalLock, appliedLock);
+
+        grantedQueue.add(queueElement);
+    }
+
+    /**
+     * Adds a blocked transaction to waiting list
      *
      * @param transaction  transaction to be added to waiting queue
      * @param originalLock original lock requested by transaction
      * @param appliedLock  lock that must applied to this element
      * @since 1.0
      */
-    public void addToQueue(Transaction transaction, Lock originalLock, Lock appliedLock) {
+    public void addWaiting(Transaction transaction, Lock originalLock, Lock appliedLock) {
 
-        //wrap a QueueElement around transactions and its requested originalLock
         QueueElement queueElement = new QueueElement(transaction, originalLock, appliedLock);
 
-        //add them to waiting queue
-        requestQueue.add(queueElement);
+        waitingQueue.add(queueElement);
     }
 
     /**
