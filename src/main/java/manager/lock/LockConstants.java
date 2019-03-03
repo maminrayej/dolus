@@ -17,11 +17,11 @@ public class LockConstants {
      */
     public static class LockTypes {
 
-        public static final int SHARED = 1;
-        public static final int EXCLUSIVE = 2;
-        public static final int UPDATE = 3;
-        public static final int INTENT_SHARED = 4;
-        public static final int INTENT_EXCLUSIVE = 5;
+        public static final int EXCLUSIVE = 1;
+        public static final int UPDATE = 2;
+        public static final int INTENT_EXCLUSIVE = 3;
+        public static final int SHARED = 4;
+        public static final int INTENT_SHARED = 5;
 
     }
 
