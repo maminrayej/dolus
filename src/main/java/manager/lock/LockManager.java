@@ -1,5 +1,7 @@
 package manager.lock;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import common.Log;
 import manager.lock.LockConstants.LockLevels;
 import manager.lock.LockConstants.LockTypes;
@@ -150,6 +152,14 @@ public class LockManager {
 
     }
 
+    /**
+     * Each element in lock tree can be locked if an appropriate lock has been acquired on its parent
+     * this method return the appropriate lock type for the parent based on the type of the requested lock
+     *
+     * @param lock request lock
+     * @return appropriate lock type for the parent
+     * @since 1.0
+     */
     private int getAppropriateParentLockType(Lock lock) {
 
         int lockType = lock.getType();
@@ -162,6 +172,16 @@ public class LockManager {
         return LockTypes.INTENT_SHARED;
     }
 
+    /**
+     * Manages a database level lock request
+     *
+     * @param transaction transaction that requested the lock
+     * @param originalLock original requested lock by transaction
+     * @param appliedLock lock to be applied to database element
+     * @param databaseName name of the database to be locked
+     * @return true if request is granted and false otherwise
+     * @since 1.0
+     */
     private boolean manageDatabaseLevelLock(Transaction transaction, Lock originalLock, Lock appliedLock, String databaseName) {
 
         //get type of the lock
@@ -192,13 +212,26 @@ public class LockManager {
         return lockElement(transaction, originalLock, appliedLock, databaseElement);
     }
 
+    /**
+     * Manages a table level lock request
+     *
+     * @param transaction transaction that requested the lock
+     * @param originalLock original requested lock by transaction
+     * @param appliedLock lock to be applied to table element
+     * @param databaseName name of the database to be locked
+     * @param tableName name of the table to be locked
+     * @return true if request is granted and false otherwise
+      @since 1.0
+     */
     private boolean manageTableLevelLock(Transaction transaction, Lock originalLock, Lock appliedLock, String databaseName, String tableName) {
 
         int lockType = appliedLock.getType();
 
+        //get appropriate lock type for database that contains the tableName
         int parentLockType = getAppropriateParentLockType(appliedLock);
 
-        Lock databaseAppliedLock   = new Lock(originalLock.getDatabase(), parentLockType);
+        //create an applied lock for database element
+        Lock databaseAppliedLock   = new Lock(databaseName, parentLockType);
 
         //first try to lock the database with appropriate lock
         boolean databaseLevelGranted = manageDatabaseLevelLock(transaction, originalLock, databaseAppliedLock, databaseName);
@@ -207,56 +240,86 @@ public class LockManager {
             return false;
         }
 
+        //get database element that contains the tableName
         LockTreeDatabaseElement databaseElement = lockTree.get(databaseName);
 
+        //get table element
         LockTreeTableElement tableElement = databaseElement.getTableElement(tableName);
 
+        //if there is no lock on requested table -> create an element for that and lock it
         if (tableElement == null) {
 
+            //create a new table element
             tableElement = new LockTreeTableElement();
 
+            //put this table element in database element that contains it
             databaseElement.putTableElement(tableName, tableElement);
 
+            //add transaction to the queue
             tableElement.addToQueue(transaction, originalLock, appliedLock);
 
+            //set current active lock type of the element
             tableElement.setCurrentActiveLockType(lockType);
 
+            //lock is granted
             return true;
         }
 
         return lockElement(transaction, originalLock, appliedLock, tableElement);
     }
 
+    /**
+     * Manages a record level locking
+     *
+     * @param transaction transaction that requested the lock
+     * @param lock requested lock by transaction
+     * @param databaseName name of the database to be locked
+     * @param tableName name of the table to be locked
+     * @param recordId id of the record to be locked
+     * @return true if request is granted and false otherwise
+     */
     private boolean manageRecordLevelLock(Transaction transaction, Lock lock, String databaseName, String tableName, Integer recordId) {
 
+        //get appropriate lock type for table that contains the recordId
         int parentLockType = getAppropriateParentLockType(lock);
 
-        Lock tableAppliedLock = new Lock(lock.getDatabase(), lock.getTable(), parentLockType);
+        //create an applied lock for table element
+        Lock tableAppliedLock = new Lock(databaseName, tableName, parentLockType);
 
+        //first try to lock the table with appropriate lock
         boolean tableLevelGranted = manageTableLevelLock(transaction, lock, tableAppliedLock, databaseName, tableName);
 
         if (!tableLevelGranted) {
             return false;
         }
 
+        //get database element that contains the table which contains requested record
         LockTreeDatabaseElement databaseElement = lockTree.get(databaseName);
 
+        //get table element that contains requested record
         LockTreeTableElement tableElement = databaseElement.getTableElement(tableName);
 
+        //get record element with requested recordId
         LockTreeElement recordElement = tableElement.getRecordElement(recordId);
 
         int lockType = lock.getType();
 
+        //if there is no lock on this record
         if (recordElement == null) {
 
+            //create a new record element
             recordElement = new LockTreeElement();
 
+            //add created record element to its table
             tableElement.putRecordElement(recordId, recordElement);
 
+            //add transaction to queue
             recordElement.addToQueue(transaction, lock, lock);
 
+            //set current active lock type
             recordElement.setCurrentActiveLockType(lockType);
 
+            //lock is granted
             return true;
         }
 

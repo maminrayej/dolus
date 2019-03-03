@@ -78,7 +78,7 @@ public class LockTreeElement {
     @Override
     public String toString() {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        return gson.toJson(requestQueue) + currentActiveLockType;
+        return gson.toJson(this);
     }
 
     /**
