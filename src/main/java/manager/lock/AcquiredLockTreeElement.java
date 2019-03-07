@@ -2,12 +2,32 @@ package manager.lock;
 
 import java.util.LinkedList;
 
+/**
+ * This class represents an element in the acquired lock tree
+ *
+ * @author m.amin rayej
+ * @version 1.0
+ * @since 1.0
+ */
 public class AcquiredLockTreeElement {
 
+    /**
+     * element in lock tree
+     */
     private LockTreeElement lockTreeElement;
 
+    /**
+     * list of children of this element in acquired lock tree
+     */
     private LinkedList<AcquiredLockTreeElement> children;
 
+    /**
+     * default constructor
+     *
+     * @param lockTreeElement element in lock tree
+     * @param hasChild determines if this acquired element can have child elements or not
+     * @since 1.0
+     */
     public AcquiredLockTreeElement(LockTreeElement lockTreeElement, boolean hasChild) {
 
         this.lockTreeElement = lockTreeElement;
@@ -18,14 +38,32 @@ public class AcquiredLockTreeElement {
             this.children = null;
     }
 
-    public void addChild(AcquiredLockTreeElement acquiredLockTreeELement) {
-        children.addFirst(acquiredLockTreeELement);
+    /**
+     * adds a child element to this element
+     *
+     * @param acquiredLockTreeElement element to be added as a child
+     * @since 1.0
+     */
+    public void addChild(AcquiredLockTreeElement acquiredLockTreeElement) {
+        children.addFirst(acquiredLockTreeElement);
     }
 
+    /**
+     * get the lock element in lock tree
+     *
+     * @return lock element that this objects is wrapped around
+     * @since 1.0
+     */
     public LockTreeElement getLockTreeElement() {
         return lockTreeElement;
     }
 
+    /**
+     * get list of all children of this element
+     *
+     * @return list of children elements
+     * @since 1.0
+     */
     public LinkedList<AcquiredLockTreeElement> getChildren() {
         return children;
     }

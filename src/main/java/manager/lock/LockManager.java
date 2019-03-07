@@ -30,6 +30,9 @@ public class LockManager {
      */
     private HashMap<String, LockTreeDatabaseElement> lockTree;
 
+    /**
+     * Mapping between a transaction and its acquired locks
+     */
     private HashMap<String, AcquiredLockTree> acquiredLockTreeMap;
 
     /**
@@ -49,46 +52,26 @@ public class LockManager {
         LockManager lockManager = new LockManager();
 
         Transaction transaction1 = new Transaction("1");
-        Transaction transaction2 = new Transaction("2");
-        Transaction transaction3 = new Transaction("3");
-        Transaction transaction4 = new Transaction("4");
-
-
 
         Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                lockManager.lock(transaction1, new Lock("database1", "table1", LockTypes.SHARED));
+                lockManager.lock(transaction1, new Lock("database1", "table1", LockTypes.UPDATE));
+                try {
+                    Thread.sleep(1000);
+                }
+                catch (InterruptedException e){
+                    e.printStackTrace();
+                }
+                lockManager.lock(transaction1, new Lock("database1", "table1", 1, LockTypes.UPDATE));
             }
         });
 
-        Thread thread2 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                lockManager.lock(transaction2, new Lock("database1" , "table1", LockTypes.EXCLUSIVE));
-            }
-        });
-        Thread thread3 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                lockManager.lock(transaction3, new Lock("database2", "table2", LockTypes.UPDATE));
-            }
-        });
-        Thread thread4 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                lockManager.lock(transaction4, new Lock("database2", "table2", LockTypes.UPDATE));
-            }
-        });
         thread1.start();
-        thread2.start();
-        thread3.start();
-        thread4.start();
 
         thread1.join();
-        thread2.join();
-        thread3.join();
-        thread4.join();
+
+
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println(gson.toJson(lockManager));

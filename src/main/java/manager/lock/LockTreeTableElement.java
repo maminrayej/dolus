@@ -26,11 +26,25 @@ public class LockTreeTableElement extends LockTreeElement {
         this.recordElements = new HashMap<>();
     }
 
+    /**
+     * get the record element specified by record id
+     *
+     * @param recordId id of the record
+     * @return lock tree element that represents the record id, or null if table element does not contain any record element with specified id
+     * @since 1.0
+     */
     public LockTreeElement getRecordElement(Integer recordId) {
 
         return recordElements.get(recordId);
     }
 
+    /**
+     * puts a record element with specified record id in this table element
+     *
+     * @param recordId id of the record
+     * @param recordElement element that represents the specified id
+     * @since 1.0
+     */
     public void putRecordElement(Integer recordId, LockTreeElement recordElement) {
 
         recordElements.put(recordId, recordElement);

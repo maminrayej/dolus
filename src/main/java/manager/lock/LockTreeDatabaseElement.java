@@ -26,19 +26,28 @@ public class LockTreeDatabaseElement extends LockTreeElement {
         this.tableElements = new HashMap<>();
     }
 
+    /**
+     * get table element with specified table name that this database element contains
+     *
+     * @param tableName name of the table to retrieve its element
+     * @return table element of the specified table name, or null if database element does not contain any table table element with specified name
+     * @since 1.0
+     */
     public LockTreeTableElement getTableElement(String tableName) {
 
         return tableElements.get(tableName);
     }
 
+    /**
+     * puts a table element with specified table name in this database element
+     *
+     * @param tableName name of the table to be added
+     * @param tableElement element that represents the table name
+     * @since 1.0
+     */
     public void putTableElement(String tableName, LockTreeTableElement tableElement) {
 
         tableElements.put(tableName, tableElement);
-    }
-
-    public HashMap<String, LockTreeTableElement> getTableElementsMap() {
-
-        return tableElements;
     }
 
 }

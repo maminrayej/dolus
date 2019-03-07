@@ -112,11 +112,4 @@ public class LockTreeElement {
     public void setCurrentActiveLockType(int currentActiveLockType) {
         this.currentActiveLockType = currentActiveLockType;
     }
-
-    @Override
-    public String toString() {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        return gson.toJson(this);
-    }
-
 }
