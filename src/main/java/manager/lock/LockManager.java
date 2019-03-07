@@ -1,5 +1,7 @@
 package manager.lock;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import common.Log;
 import manager.lock.LockConstants.LockLevels;
 import manager.lock.LockConstants.LockTypes;
@@ -28,6 +30,8 @@ public class LockManager {
      */
     private HashMap<String, LockTreeDatabaseElement> lockTree;
 
+    private HashMap<String, AcquiredLockTree> acquiredLockTreeMap;
+
     /**
      * Default constructor
      *
@@ -36,46 +40,58 @@ public class LockManager {
     public LockManager() {
 
         lockTree = new HashMap<>();
+
+        acquiredLockTreeMap = new HashMap<>();
     }
 
     public static void main(String[] args) throws InterruptedException {
 
         LockManager lockManager = new LockManager();
 
-        Transaction transaction1 = new Transaction(1);
-        Transaction transaction2 = new Transaction(2);
-        Transaction transaction3 = new Transaction(3);
+        Transaction transaction1 = new Transaction("1");
+        Transaction transaction2 = new Transaction("2");
+        Transaction transaction3 = new Transaction("3");
+        Transaction transaction4 = new Transaction("4");
 
 
 
         Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                lockManager.lock(transaction1, new Lock("database1", LockTypes.SHARED));
+                lockManager.lock(transaction1, new Lock("database1", "table1", LockTypes.SHARED));
             }
         });
 
         Thread thread2 = new Thread(new Runnable() {
             @Override
             public void run() {
-                lockManager.lock(transaction2, new Lock("database1", LockTypes.INTENT_SHARED));
+                lockManager.lock(transaction2, new Lock("database1" , "table1", LockTypes.EXCLUSIVE));
             }
         });
         Thread thread3 = new Thread(new Runnable() {
             @Override
             public void run() {
-                lockManager.lock(transaction3, new Lock("database1", LockTypes.UPDATE));
+                lockManager.lock(transaction3, new Lock("database2", "table2", LockTypes.UPDATE));
+            }
+        });
+        Thread thread4 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                lockManager.lock(transaction4, new Lock("database2", "table2", LockTypes.UPDATE));
             }
         });
         thread1.start();
         thread2.start();
         thread3.start();
+        thread4.start();
 
         thread1.join();
         thread2.join();
         thread3.join();
+        thread4.join();
 
-        lockManager.printLockTree();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        System.out.println(gson.toJson(lockManager));
 
     }
 
@@ -89,6 +105,16 @@ public class LockManager {
      */
     public synchronized boolean lock(Transaction transaction, Lock lock) {
 
+        //manage acquired lock tree for this transaction
+        String transactionId = transaction.getTransactionId();
+
+        //get acquired lock tree registered for this transaction
+        AcquiredLockTree acquiredLockTree = acquiredLockTreeMap.get(transactionId);
+
+        //if there is no acquired lock tree registered for this transaction -> register one!
+        if (acquiredLockTree == null)
+            acquiredLockTreeMap.put(transactionId, new AcquiredLockTree());
+
         //get name of the database to be locked
         String database = lock.getDatabase();
 
@@ -101,7 +127,7 @@ public class LockManager {
         //determine the lock level
         int lockLevel = getLockLevel(lock);
         if (lockLevel == LockLevels.NOT_VALID_LEVEL) {
-            Log.log(String.format("Lock requested by transaction: %d is not a valid request", transaction.getTransactionId()), componentName, Log.ERROR);
+            Log.log(String.format("Lock requested by transaction: %s is not a valid request", transaction.getTransactionId()), componentName, Log.ERROR);
             return false;
         }
 
@@ -203,11 +229,30 @@ public class LockManager {
             //set current active lock type to requested type
             databaseElement.setCurrentActiveLockType(lockType);
 
+            //get transaction Id
+            String transactionId = transaction.getTransactionId();
+
+            //add this database element to acquired lock tree of the transaction
+            this.acquiredLockTreeMap.get(transactionId).addDatabaseLock(databaseName, databaseElement);
+
             //lock is granted
             return true;
         }
 
-        return lockElement(transaction, originalLock, appliedLock, databaseElement);
+        boolean granted =  lockElement(transaction, originalLock, appliedLock, databaseElement);
+
+        if (granted) {
+            //get transaction Id
+            String transactionId = transaction.getTransactionId();
+
+            //add this database element to acquired lock tree of the transaction
+            this.acquiredLockTreeMap.get(transactionId).addDatabaseLock(databaseName, databaseElement);
+
+            //lock is granted
+            return true;
+        }
+        else
+            return false;//lock is not granted
     }
 
     /**
@@ -259,11 +304,29 @@ public class LockManager {
             //set current active lock type of the element
             tableElement.setCurrentActiveLockType(lockType);
 
+            //get transaction id
+            String transactionId = transaction.getTransactionId();
+
+            //get acquired lock tree registered for this transaction
+            this.acquiredLockTreeMap.get(transactionId).addTableLock(databaseName, tableName, tableElement);
+
             //lock is granted
             return true;
         }
 
-        return lockElement(transaction, originalLock, appliedLock, tableElement);
+        boolean granted = lockElement(transaction, originalLock, appliedLock, tableElement);
+        if (granted) {
+            //get transaction id
+            String transactionId = transaction.getTransactionId();
+
+            //get acquired lock tree registered for this transaction
+            this.acquiredLockTreeMap.get(transactionId).addTableLock(databaseName, tableName, tableElement);
+
+            //lock is granted
+            return true;
+        }
+        else
+            return false;//lock is not granted
     }
 
     /**
@@ -277,19 +340,19 @@ public class LockManager {
      * @return true if request is granted and false otherwise
      */
     private boolean manageRecordLevelLock(Transaction transaction, Lock lock, String databaseName, String tableName, Integer recordId) {
-
-        //get appropriate lock type for table that contains the recordId
-        int parentLockType = getAppropriateParentLockType(lock);
-
-        //create an applied lock for table element
-        Lock tableAppliedLock = new Lock(databaseName, tableName, parentLockType);
-
-        //first try to lock the table with appropriate lock
-        boolean tableLevelGranted = manageTableLevelLock(transaction, lock, tableAppliedLock, databaseName, tableName);
-
-        if (!tableLevelGranted) {
-            return false;
-        }
+//
+//        //get appropriate lock type for table that contains the recordId
+//        int parentLockType = getAppropriateParentLockType(lock);
+//
+//        //create an applied lock for table element
+//        Lock tableAppliedLock = new Lock(databaseName, tableName, parentLockType);
+//
+//        //first try to lock the table with appropriate lock
+//        boolean tableLevelGranted = manageTableLevelLock(transaction, lock, tableAppliedLock, databaseName, tableName);
+//
+//        if (!tableLevelGranted) {
+//            return false;
+//        }
 
         //get database element that contains the table which contains requested record
         LockTreeDatabaseElement databaseElement = lockTree.get(databaseName);
@@ -317,11 +380,29 @@ public class LockManager {
             //set current active lock type
             recordElement.setCurrentActiveLockType(lockType);
 
+            //get transaction id
+            String transactionId = transaction.getTransactionId();
+
+            //get acquired lock tree for this transaction and add this record to its tree
+            acquiredLockTreeMap.get(transactionId).addRecordLock(tableName, recordElement);
+
             //lock is granted
             return true;
         }
 
-        return lockElement(transaction, lock, lock, recordElement);
+        boolean granted = lockElement(transaction, lock, lock, recordElement);
+
+        if (granted) {
+            //get transaction id
+            String transactionId = transaction.getTransactionId();
+
+            //get acquired lock tree for this transaction and add this record to its tree
+            acquiredLockTreeMap.get(transactionId).addRecordLock(tableName, recordElement);
+
+            return true;
+        }
+        else
+            return false;
     }
 
     /**

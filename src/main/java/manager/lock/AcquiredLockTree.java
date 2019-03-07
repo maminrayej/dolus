@@ -46,6 +46,14 @@ public class AcquiredLockTree {
         acquiredTableElement.addChild(acquiredRecordElement);
     }
 
+    public AcquiredLockTreeElement getAcquiredDatabase(String databaseName) {
+        return databaseMap.get(databaseName);
+    }
+
+    public AcquiredLockTreeElement getAcquiredTable(String tableName) {
+        return tableMap.get(tableName);
+    }
+
     public LinkedList<AcquiredLockTreeElement> getAcquiredLockTree() {
         return this.databases;
     }

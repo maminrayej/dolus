@@ -5,14 +5,14 @@ import manager.lock.Lock;
 public class Transaction {
 
 
-    private int transactionId;
+    private String transactionId;
 
-    public Transaction(int transactionId)
+    public Transaction(String transactionId)
     {
         this.transactionId = transactionId;
     }
 
-    public int getTransactionId(){
+    public String getTransactionId(){
         return this.transactionId;
     }
 

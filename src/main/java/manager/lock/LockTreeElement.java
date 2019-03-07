@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import manager.transaction.Transaction;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * This class represents basic element in originalLock tree
@@ -28,6 +25,8 @@ public class LockTreeElement {
      */
     private Queue<QueueElement> waitingQueue;
 
+    private HashMap<String,QueueElement> grantedMap;
+
     /**
      * Keeps current active originalLock type. if a compatible originalLock acquires this element but
      * is a more restrictive originalLock, current active originalLock type should be updated to type of the new originalLock.
@@ -46,6 +45,8 @@ public class LockTreeElement {
         this.grantedList = new LinkedList<>();
 
         this.waitingQueue = new LinkedList<>();
+
+        this.grantedMap = new HashMap<>();
     }
 
     /**
@@ -62,7 +63,19 @@ public class LockTreeElement {
 
         grantedList.add(queueElement);
 
+        grantedMap.put(transaction.getTransactionId(), queueElement);
+
         grantedList.sort(new QueueElementComparator());
+    }
+
+    public Lock getGrantedAppliedLock(Transaction transaction) {
+
+        QueueElement queueElement = grantedMap.get(transaction.getTransactionId());
+
+        if (queueElement == null)
+            return null;
+
+        return queueElement.getAppliedLock();
     }
 
     /**
