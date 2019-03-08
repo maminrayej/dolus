@@ -8,9 +8,10 @@ import manager.lock.LockConstants.LockTypes;
 import manager.transaction.Transaction;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 /**
- * This class manages locks. and provides lock() and unlock() interface.
+ * This class manages locks. and provides lock() and releaseLock() interface.
  * also uses a waits-for graph to detect dead locks.
  *
  * @author m.amin.rayej
@@ -56,22 +57,12 @@ public class LockManager {
         Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                lockManager.lock(transaction1, new Lock("database1", "table1", LockTypes.UPDATE));
-                try {
-                    Thread.sleep(1000);
-                }
-                catch (InterruptedException e){
-                    e.printStackTrace();
-                }
-                lockManager.lock(transaction1, new Lock("database1", "table1", 1, LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("database1", LockTypes.UPDATE));
             }
         });
 
         thread1.start();
-
         thread1.join();
-
-
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println(gson.toJson(lockManager));
@@ -117,7 +108,7 @@ public class LockManager {
         //shows if requested lock is granted immediately or not
         boolean granted = false;
 
-        //according to the lock level call its appropriate manager
+        //according to the lock level, call its appropriate manager
         if (lockLevel == LockLevels.DATABASE_LOCK) {
 
             granted = manageDatabaseLevelLock(transaction, lock, lock, database);
@@ -182,17 +173,14 @@ public class LockManager {
     /**
      * Manages a database level lock request
      *
-     * @param transaction transaction that requested the lock
+     * @param transaction  transaction that requested the lock
      * @param originalLock original requested lock by transaction
-     * @param appliedLock lock to be applied to database element
+     * @param appliedLock  lock to be applied to database element
      * @param databaseName name of the database to be locked
      * @return true if request is granted and false otherwise
      * @since 1.0
      */
     private boolean manageDatabaseLevelLock(Transaction transaction, Lock originalLock, Lock appliedLock, String databaseName) {
-
-        //get type of the lock
-        int lockType = appliedLock.getType();
 
         //get database element with name specified by database variable
         LockTreeDatabaseElement databaseElement = this.lockTree.get(databaseName);
@@ -207,10 +195,7 @@ public class LockManager {
             lockTree.put(databaseName, databaseElement);
 
             //add transaction to waiting queue of this element
-            databaseElement.addGranted(transaction, originalLock, appliedLock);
-
-            //set current active lock type to requested type
-            databaseElement.setCurrentActiveLockType(lockType);
+            databaseElement.acquireLock(transaction, originalLock, appliedLock);
 
             //get transaction Id
             String transactionId = transaction.getTransactionId();
@@ -222,7 +207,7 @@ public class LockManager {
             return true;
         }
 
-        boolean granted =  lockElement(transaction, originalLock, appliedLock, databaseElement);
+        boolean granted = databaseElement.acquireLock(transaction, originalLock, appliedLock);
 
         if (granted) {
             //get transaction Id
@@ -233,31 +218,28 @@ public class LockManager {
 
             //lock is granted
             return true;
-        }
-        else
+        } else
             return false;//lock is not granted
     }
 
     /**
      * Manages a table level lock request
      *
-     * @param transaction transaction that requested the lock
+     * @param transaction  transaction that requested the lock
      * @param originalLock original requested lock by transaction
-     * @param appliedLock lock to be applied to table element
+     * @param appliedLock  lock to be applied to table element
      * @param databaseName name of the database to be locked
-     * @param tableName name of the table to be locked
+     * @param tableName    name of the table to be locked
      * @return true if request is granted and false otherwise
-      @since 1.0
+     * @since 1.0
      */
     private boolean manageTableLevelLock(Transaction transaction, Lock originalLock, Lock appliedLock, String databaseName, String tableName) {
-
-        int lockType = appliedLock.getType();
 
         //get appropriate lock type for database that contains the tableName
         int parentLockType = getAppropriateParentLockType(appliedLock);
 
         //create an applied lock for database element
-        Lock databaseAppliedLock   = new Lock(databaseName, parentLockType);
+        Lock databaseAppliedLock = new Lock(databaseName, parentLockType);
 
         //first try to lock the database with appropriate lock
         boolean databaseLevelGranted = manageDatabaseLevelLock(transaction, originalLock, databaseAppliedLock, databaseName);
@@ -282,10 +264,7 @@ public class LockManager {
             databaseElement.putTableElement(tableName, tableElement);
 
             //add transaction to the queue
-            tableElement.addGranted(transaction, originalLock, appliedLock);
-
-            //set current active lock type of the element
-            tableElement.setCurrentActiveLockType(lockType);
+            tableElement.acquireLock(transaction, originalLock, appliedLock);
 
             //get transaction id
             String transactionId = transaction.getTransactionId();
@@ -297,7 +276,8 @@ public class LockManager {
             return true;
         }
 
-        boolean granted = lockElement(transaction, originalLock, appliedLock, tableElement);
+        boolean granted = tableElement.acquireLock(transaction, originalLock, appliedLock);
+
         if (granted) {
             //get transaction id
             String transactionId = transaction.getTransactionId();
@@ -307,35 +287,21 @@ public class LockManager {
 
             //lock is granted
             return true;
-        }
-        else
+        } else
             return false;//lock is not granted
     }
 
     /**
      * Manages a record level locking
      *
-     * @param transaction transaction that requested the lock
-     * @param lock requested lock by transaction
+     * @param transaction  transaction that requested the lock
+     * @param lock         requested lock by transaction
      * @param databaseName name of the database to be locked
-     * @param tableName name of the table to be locked
-     * @param recordId id of the record to be locked
+     * @param tableName    name of the table to be locked
+     * @param recordId     id of the record to be locked
      * @return true if request is granted and false otherwise
      */
     private boolean manageRecordLevelLock(Transaction transaction, Lock lock, String databaseName, String tableName, Integer recordId) {
-//
-//        //get appropriate lock type for table that contains the recordId
-//        int parentLockType = getAppropriateParentLockType(lock);
-//
-//        //create an applied lock for table element
-//        Lock tableAppliedLock = new Lock(databaseName, tableName, parentLockType);
-//
-//        //first try to lock the table with appropriate lock
-//        boolean tableLevelGranted = manageTableLevelLock(transaction, lock, tableAppliedLock, databaseName, tableName);
-//
-//        if (!tableLevelGranted) {
-//            return false;
-//        }
 
         //get database element that contains the table which contains requested record
         LockTreeDatabaseElement databaseElement = lockTree.get(databaseName);
@@ -345,8 +311,6 @@ public class LockManager {
 
         //get record element with requested recordId
         LockTreeElement recordElement = tableElement.getRecordElement(recordId);
-
-        int lockType = lock.getType();
 
         //if there is no lock on this record
         if (recordElement == null) {
@@ -358,10 +322,7 @@ public class LockManager {
             tableElement.putRecordElement(recordId, recordElement);
 
             //add transaction to queue
-            recordElement.addGranted(transaction, lock, lock);
-
-            //set current active lock type
-            recordElement.setCurrentActiveLockType(lockType);
+            recordElement.acquireLock(transaction, lock, lock);
 
             //get transaction id
             String transactionId = transaction.getTransactionId();
@@ -373,7 +334,7 @@ public class LockManager {
             return true;
         }
 
-        boolean granted = lockElement(transaction, lock, lock, recordElement);
+        boolean granted = recordElement.acquireLock(transaction, lock, lock);
 
         if (granted) {
             //get transaction id
@@ -383,169 +344,60 @@ public class LockManager {
             acquiredLockTreeMap.get(transactionId).addRecordLock(tableName, recordElement);
 
             return true;
-        }
-        else
+        } else
             return false;
     }
 
-    /**
-     * Locks an element in the tree lock
-     *
-     * @param transaction transaction that requested the lock
-     * @param originalLock        lock to be acquired
-     * @param element     element to be locked
-     * @return true if transactions successfully acquired the lock, false otherwise
-     * @since 1.0
-     */
-    private boolean lockElement(Transaction transaction, Lock originalLock, Lock appliedLock, LockTreeElement element) {
+    public synchronized void unlock(Transaction transaction) {
 
-        //get the type of the lock
-        int lockType = appliedLock.getType();
+        //get transaction id
+        String transactionId = transaction.getTransactionId();
 
-        //get current active lock type and use it to see whether requested lock
-        //is compatible with current active lock type or not
-        int currentActiveLockType = element.getCurrentActiveLockType();
+        //get acquired lock tree registered for this transaction id
+        AcquiredLockTree acquiredLockTree = acquiredLockTreeMap.get(transactionId);
 
-        if (lockType == LockTypes.SHARED) {
+        //get the tree of locks acquired by this transaction
+        LinkedList<AcquiredLockTreeElement> databases = acquiredLockTree.getAcquiredLockTree();
 
-            //SHARED lock is compatible with Shared, Exclusive, Update and Intent Shared locks
-            //if lock is compatible with current active lock type
-            if (currentActiveLockType == LockTypes.SHARED) {
+        //visit children first and then visit their parents
+        //so for every parent to be unlocked, each child of that parent must be unlocked first(multi granularity policy)
+        for (int i = 0; i < databases.size(); i++) {
 
-                //add transaction to waiting queue of this element
-                element.addGranted(transaction, originalLock, appliedLock);
+            AcquiredLockTreeElement acquiredDatabaseElement = databases.removeFirst();
 
-                //lock is granted
-                return true;
-            } else if (currentActiveLockType == LockTypes.UPDATE) {
+            LinkedList<AcquiredLockTreeElement> tables = acquiredDatabaseElement.getChildren();
 
-                //add transaction to waiting queue of this element
-                element.addGranted(transaction, originalLock, appliedLock);
+            for (int j = 0; j < tables.size(); j++) {
 
-                //lock is granted
-                return true;
-            } else if (currentActiveLockType == LockTypes.INTENT_SHARED) {
+                AcquiredLockTreeElement acquiredTableElement = tables.removeFirst();
 
-                //add transaction to waiting queue of this element
-                element.addGranted(transaction, originalLock, appliedLock);
+                LinkedList<AcquiredLockTreeElement> records = acquiredTableElement.getChildren();
 
-                //Shared lock is more restrictive than Intent shared
-                //so current active lock type on this element must change to Shared
-                element.setCurrentActiveLockType(LockTypes.SHARED);
+                for (int k = 0; k < records.size(); k++) {
 
-                //lock is granted
-                return true;
+                    AcquiredLockTreeElement acquiredRecordElement = records.removeFirst();
+
+                    LockTreeElement lockTreeElement = acquiredRecordElement.getLockTreeElement();
+
+                    LinkedList<Transaction> grantedTransactions = lockTreeElement.releaseLock(transactionId);
+
+                    //add granted transactions to the shared memory with call back thread
+                    //CODE HERE
+                }
+
+                //now that every lock held on records of table element by the transaction is released,
+                //we can release the lock on table itself
+                LinkedList<Transaction> grantedTransactions = acquiredTableElement.getLockTreeElement().releaseLock(transactionId);
+
+                //add granted transactions to the shared memory with call back thread
+                //CODE HERE
             }
 
-            //lock is incompatible with current active lock
-            //add transaction to waiting queue of this element
-            element.addWaiting(transaction, originalLock, appliedLock);
-
-            //lock is not granted
-            return false;
-
-        } else if (lockType == LockTypes.EXCLUSIVE) {
-
-            //Exclusive lock is not compatible with any lock
-            //add transaction to waiting queue of this element
-            element.addWaiting(transaction, originalLock, appliedLock);
-
-            //lock is not granted
-            return false;
-
-        } else if (lockType == LockTypes.UPDATE) {
-
-            //Update lock is compatible with Intent shared and Shared locks
-            //if lock is compatible with current active lock type
-            if (currentActiveLockType == LockTypes.INTENT_SHARED) {
-
-                //add transaction to waiting queue of this element
-                element.addGranted(transaction, originalLock, appliedLock);
-
-                //Update lock is more restrictive so current active lock type must set to Update
-                element.setCurrentActiveLockType(LockTypes.UPDATE);
-
-                //lock is granted
-                return true;
-            } else if (currentActiveLockType == LockTypes.SHARED) {
-
-                //add transaction to waiting queue of this element
-                element.addGranted(transaction, originalLock, appliedLock);
-
-                //Update lock is more restrictive so current active lock type must set to Update
-                element.setCurrentActiveLockType(LockTypes.UPDATE);
-
-                //lock is granted
-                return true;
-            }
-
-            //lock is incompatible
-            //add transaction to waiting queue of this element
-            element.addWaiting(transaction, originalLock, appliedLock);
-
-            //lock is not granted
-            return false;
-
-        } else if (lockType == LockTypes.INTENT_SHARED) {
-
-            //Intent shared lock is only incompatible with Exclusive lock
-            //if lock is incompatible with current active lock type
-            if (currentActiveLockType == LockTypes.EXCLUSIVE) {
-
-                //add transaction to waiting queue of this element
-                element.addWaiting(transaction, originalLock, appliedLock);
-
-                //lock is not granted
-                return false;
-            } else {
-
-                //add transaction to waiting queue of this element
-                element.addGranted(transaction, originalLock, appliedLock);
-
-                //lock is granted
-                return true;
-            }
-
-        } else if (lockType == LockTypes.INTENT_EXCLUSIVE) {
-
-            //Intent Exclusive lock is only compatible with Intent Shared and Intent Exclusive lock
-            //if lock is compatible
-            if (currentActiveLockType == LockTypes.INTENT_SHARED) {
-
-                //add transaction to waiting queue of this element
-                element.addGranted(transaction, originalLock, appliedLock);
-
-                //Intent Exclusive is more restrictive than Intent Shared, so current active lock type must set to Intent Exclusive
-                element.setCurrentActiveLockType(LockTypes.INTENT_EXCLUSIVE);
-
-                //lock is granted
-                return true;
-            } else if (currentActiveLockType == LockTypes.INTENT_EXCLUSIVE) {
-
-                //add transaction to waiting queue of this element
-                element.addGranted(transaction, originalLock, appliedLock);
-
-                //lock is granted
-                return true;
-            }
-
-            //if lock is incompatible
-            //add transaction to waiting queue of this element
-            element.addWaiting(transaction, originalLock, appliedLock);
-
-            //lock is not granted
-            return false;
+            //now that every lock held on tables of database element by the transaction is released,
+            //we can release the lock on database itself
+            acquiredDatabaseElement.getLockTreeElement().releaseLock(transactionId);
         }
 
-        return false;
     }
 
-    public synchronized void unlock() {
-
-    }
-
-    public void printLockTree() {
-
-        System.out.println(this.lockTree);
-    }
 }

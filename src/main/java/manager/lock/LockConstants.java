@@ -22,6 +22,7 @@ public class LockConstants {
         public static final int INTENT_EXCLUSIVE = 3;
         public static final int SHARED = 4;
         public static final int INTENT_SHARED = 5;
+        public static final int NO_LOCK = 6;
 
     }
 
