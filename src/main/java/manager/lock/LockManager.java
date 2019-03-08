@@ -60,6 +60,14 @@ public class LockManager {
             @Override
             public void run() {
                 lockManager.lock(transaction1, new Lock("database1", LockTypes.UPDATE));
+
+                try{
+                    Thread.sleep(1000);
+                    lockManager.unlock(transaction1);
+                }
+                catch (InterruptedException e){
+                    e.printStackTrace();
+                }
             }
         });
 
@@ -467,6 +475,8 @@ public class LockManager {
             //we can release the lock on database itself
             acquiredDatabaseElement.getLockTreeElement().releaseLock(transactionId);
         }
+
+        callBackRunnable.exit();
 
         //wait for the call back thread to end
         try {

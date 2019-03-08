@@ -14,6 +14,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class CallBackRunnable implements Runnable {
 
+    private volatile boolean exit = false;
+
     private Queue<QueueElement> firstQueue;
 
     private Queue<QueueElement> secondQueue;
@@ -32,7 +34,7 @@ public class CallBackRunnable implements Runnable {
     @Override
     public void run() {
 
-        while(true) {
+        while (!exit && firstQueue.isEmpty() && secondQueue.isEmpty()) {
 
             //try to lock the first queue
             if (firstQueueLock.tryLock()) {
@@ -42,8 +44,7 @@ public class CallBackRunnable implements Runnable {
 
                 //unlock the first queue
                 firstQueueLock.unlock();
-            }
-            else if (secondQueueLock.tryLock()) {
+            } else if (secondQueueLock.tryLock()) {
 
                 //inform all transactions in the first queue of their granted locks
                 informTransaction(secondQueue);
@@ -52,6 +53,7 @@ public class CallBackRunnable implements Runnable {
                 secondQueueLock.unlock();
             }
         }
+
 
     }
 
@@ -78,5 +80,9 @@ public class CallBackRunnable implements Runnable {
             //inform the transaction that requested lock is granted
             transaction.lockIsGranted(lock);
         }
+    }
+
+    public void exit() {
+        this.exit = true;
     }
 }
