@@ -9,6 +9,8 @@ import manager.transaction.Transaction;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * This class manages locks. and provides lock() and releaseLock() interface.
@@ -348,7 +350,30 @@ public class LockManager {
             return false;
     }
 
+    /**
+     * An interface for transactions to release their lock
+     *
+     * @param transaction transaction object that wants to release its locks
+     * @since 1.0
+     */
     public synchronized void unlock(Transaction transaction) {
+
+        //create shared queues
+        Queue<QueueElement> firstQueue = new LinkedList<>();
+        Queue<QueueElement> secondQueue = new LinkedList<>();
+
+        //create locks for queues
+        ReentrantLock firstQueueLock = new ReentrantLock();
+        ReentrantLock secondQueueLock = new ReentrantLock();
+
+        //create an instance of the callback runnable
+        CallBackRunnable callBackRunnable = new CallBackRunnable(firstQueue, secondQueue, firstQueueLock, secondQueueLock);
+
+        //assign a thread to the call back runnable
+        Thread callBackThread = new Thread(callBackRunnable);
+
+        //start the call back thread
+        callBackThread.start();
 
         //get transaction id
         String transactionId = transaction.getTransactionId();
@@ -363,26 +388,54 @@ public class LockManager {
         //so for every parent to be unlocked, each child of that parent must be unlocked first(multi granularity policy)
         for (int i = 0; i < databases.size(); i++) {
 
+            //get an acquired database element from head of the database list
             AcquiredLockTreeElement acquiredDatabaseElement = databases.removeFirst();
 
+            //first all tables of the database must be unlocked in order for the database to be unlocked
+            //so get all locked tables of the database element
             LinkedList<AcquiredLockTreeElement> tables = acquiredDatabaseElement.getChildren();
 
+            //loop through tables and unlock each one
             for (int j = 0; j < tables.size(); j++) {
 
+                //get an acquired table element from head of the table list
                 AcquiredLockTreeElement acquiredTableElement = tables.removeFirst();
 
+                //first all record of the table must be unlocked in order for the table to be unlocked
+                //so get all lock records of the table element
                 LinkedList<AcquiredLockTreeElement> records = acquiredTableElement.getChildren();
 
                 for (int k = 0; k < records.size(); k++) {
 
+                    //get an acquired record element from head of the record list
                     AcquiredLockTreeElement acquiredRecordElement = records.removeFirst();
 
+                    //each acquired element contains an element from the lock tree
+                    //get that lock tree element inside of the acquired element
                     LockTreeElement lockTreeElement = acquiredRecordElement.getLockTreeElement();
 
+                    //release the lock held by the transaction and get list of new granted transactions
                     LinkedList<QueueElement> grantedTransactions = lockTreeElement.releaseLock(transactionId);
 
                     //add granted transactions to the shared memory with call back thread
-                    //CODE HERE
+                    //call back thread will inform each transaction of its granted lock
+                    //try to lock the first queue
+                    if (firstQueueLock.tryLock()) {
+
+                        //add all transactions to the first queue
+                        firstQueue.addAll(grantedTransactions);
+
+                        //unlock the first queue
+                        firstQueueLock.unlock();
+                    }
+                    else if (secondQueueLock.tryLock()) {
+
+                        //add all transactions to the second queue
+                        secondQueue.addAll(grantedTransactions);
+
+                        //unlock the second queue
+                        secondQueueLock.unlock();
+                    }
                 }
 
                 //now that every lock held on records of table element by the transaction is released,
@@ -390,12 +443,36 @@ public class LockManager {
                 LinkedList<QueueElement> grantedTransactions = acquiredTableElement.getLockTreeElement().releaseLock(transactionId);
 
                 //add granted transactions to the shared memory with call back thread
-                //CODE HERE
+                //call back thread will inform each transaction of its granted lock
+                //try to lock the first queue
+                if (firstQueueLock.tryLock()) {
+
+                    //add all transactions to the first queue
+                    firstQueue.addAll(grantedTransactions);
+
+                    //unlock the first queue
+                    firstQueueLock.unlock();
+                }
+                else if (secondQueueLock.tryLock()) {
+
+                    //add all transactions to the second queue
+                    secondQueue.addAll(grantedTransactions);
+
+                    //unlock the second queue
+                    secondQueueLock.unlock();
+                }
             }
 
             //now that every lock held on tables of database element by the transaction is released,
             //we can release the lock on database itself
             acquiredDatabaseElement.getLockTreeElement().releaseLock(transactionId);
+        }
+
+        //wait for the call back thread to end
+        try {
+            callBackThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
     }
