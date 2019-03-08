@@ -379,7 +379,7 @@ public class LockManager {
 
                     LockTreeElement lockTreeElement = acquiredRecordElement.getLockTreeElement();
 
-                    LinkedList<Transaction> grantedTransactions = lockTreeElement.releaseLock(transactionId);
+                    LinkedList<QueueElement> grantedTransactions = lockTreeElement.releaseLock(transactionId);
 
                     //add granted transactions to the shared memory with call back thread
                     //CODE HERE
@@ -387,7 +387,7 @@ public class LockManager {
 
                 //now that every lock held on records of table element by the transaction is released,
                 //we can release the lock on table itself
-                LinkedList<Transaction> grantedTransactions = acquiredTableElement.getLockTreeElement().releaseLock(transactionId);
+                LinkedList<QueueElement> grantedTransactions = acquiredTableElement.getLockTreeElement().releaseLock(transactionId);
 
                 //add granted transactions to the shared memory with call back thread
                 //CODE HERE

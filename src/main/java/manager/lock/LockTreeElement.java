@@ -65,7 +65,7 @@ public class LockTreeElement {
      * @return a linked list of transactions that are now granted because of the released lock, or null if both granted and waiting list of this element is empty
      * @since 1.0
      */
-    public LinkedList<Transaction> releaseLock(String transactionId) {
+    public LinkedList<QueueElement> releaseLock(String transactionId) {
 
         //get queue element that represents this transaction id in granted list
         //we use granted map for fast retrieval of elements
@@ -94,7 +94,7 @@ public class LockTreeElement {
         grantedList.remove(queueElement);
 
         //list of transactions that are granted now because of the released lock
-        LinkedList<Transaction> grantedTransactions = new LinkedList<>();
+        LinkedList<QueueElement> grantedTransactions = new LinkedList<>();
 
         //flag to see if we should sort the granted list after the loop or not
         boolean isGrantedListChanged = false;
@@ -124,7 +124,7 @@ public class LockTreeElement {
                 grantedMap.put(waitingElement.getTransaction().getTransactionId(), waitingElement);
 
                 //add the transaction to the granted transactions list to inform lock manager
-                grantedTransactions.addFirst(waitingElement.getTransaction());
+                grantedTransactions.addFirst(waitingElement);
 
                 //update current active lock type of this element
                 //this helps us to update the active lock type without having to sort the granted list every time a transaction is granted
