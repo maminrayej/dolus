@@ -59,7 +59,18 @@ public class LockManager {
         Thread thread1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                lockManager.lock(transaction1, new Lock("database1", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table1", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table2", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table3", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table4", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table5", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table6", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table7", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table8", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table9", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table10", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table11", LockTypes.UPDATE));
+                lockManager.lock(transaction1, new Lock("table12", LockTypes.UPDATE));
 
                 try{
                     Thread.sleep(1000);
