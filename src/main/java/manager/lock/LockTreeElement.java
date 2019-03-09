@@ -34,6 +34,12 @@ public class LockTreeElement {
     private HashMap<String, QueueElement> grantedMap;
 
     /**
+     * Mapping between a transaction id to its element in the waiting list
+     * this data structure is used to retrieve the waiting requests fast
+     */
+    private HashMap<String, QueueElement> waitingMap;
+
+    /**
      * Keeps current active lock type. if a compatible lock request acquires this element but
      * is a more restrictive lock type, current active lock type must be updated to type of the more restrictive lock.
      * for example if a transaction A holds an IS lock on this element and transaction B requests an IX lock
@@ -53,6 +59,8 @@ public class LockTreeElement {
         this.waitingQueue = new LinkedList<>();
 
         this.grantedMap = new HashMap<>();
+
+        this.waitingMap = new HashMap<>();
 
         //there is no lock held on this element
         this.currentActiveLockType = LockTypes.NO_LOCK;
@@ -74,8 +82,14 @@ public class LockTreeElement {
         //there is no granted lock held by this transaction of this element
         if (queueElement == null) {
 
-            //must remove the requested lock in the waiting queue
-            //CODE HERE
+            //retrieve the element in waiting queue that represents the requested lock by transaction
+            QueueElement queueElement1 = waitingMap.get(transactionId);
+
+            //remove the lock requested by the transaction from waiting list
+            waitingQueue.remove(queueElement1);
+
+            //remove the transaction request entry from waiting map
+            waitingMap.remove(transactionId);
 
             //if both granted and waiting list of this element is empty,
             //it should be removed by the lock manager from lock tree
@@ -203,6 +217,9 @@ public class LockTreeElement {
 
             //add the element to the waiting queue
             waitingQueue.add(queueElement);
+
+            //add the request to the waiting map
+            waitingMap.put(transaction.getTransactionId(), queueElement);
 
             //request is not granted
             return false;

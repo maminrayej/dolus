@@ -64,7 +64,7 @@ public class LockManager {
 
             try {
                 Thread.sleep(1000);
-                lockManager.unlock(transaction1);
+                lockManager.unlock(transaction2);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
