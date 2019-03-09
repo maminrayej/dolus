@@ -34,9 +34,9 @@ public class LockManager {
     private HashMap<String, LockTreeDatabaseElement> lockTree;
 
     /**
-     * Mapping between a transaction and its acquired locks
+     * Mapping between a transaction and its requested locks
      */
-    private HashMap<String, RequestedLockTree> acquiredLockTreeMap;
+    private HashMap<String, RequestedLockTree> requestedLockTreeMap;
 
     /**
      * Default constructor
@@ -47,7 +47,7 @@ public class LockManager {
 
         lockTree = new HashMap<>();
 
-        acquiredLockTreeMap = new HashMap<>();
+        requestedLockTreeMap = new HashMap<>();
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -88,15 +88,15 @@ public class LockManager {
      */
     public synchronized boolean lock(Transaction transaction, Lock lock) {
 
-        //manage acquired lock tree for this transaction
+        //manage requested lock tree for this transaction
         String transactionId = transaction.getTransactionId();
 
-        //get acquired lock tree registered for this transaction
-        RequestedLockTree acquiredLockTree = acquiredLockTreeMap.get(transactionId);
+        //get requested lock tree registered for this transaction
+        RequestedLockTree requestedLockTree = requestedLockTreeMap.get(transactionId);
 
-        //if there is no acquired lock tree registered for this transaction -> register one!
-        if (acquiredLockTree == null)
-            acquiredLockTreeMap.put(transactionId, new RequestedLockTree());
+        //if there is no requested lock tree registered for this transaction -> register one!
+        if (requestedLockTree == null)
+            requestedLockTreeMap.put(transactionId, new RequestedLockTree());
 
         //get name of the database to be locked
         String database = lock.getDatabase();
@@ -160,7 +160,7 @@ public class LockManager {
     }
 
     /**
-     * Each element in lock tree can be locked if an appropriate lock has been acquired on its parent
+     * Each element in lock tree can be locked if an appropriate lock has been requested on its parent
      * this method return the appropriate lock type for the parent based on the type of the requested lock
      *
      * @param lock request lock
@@ -194,7 +194,7 @@ public class LockManager {
         //get database element with name specified by database variable
         LockTreeDatabaseElement databaseElement = this.lockTree.get(databaseName);
 
-        //if this is a new node in tree -> no lock has been acquired on this database yet
+        //if this is a new node in tree -> no lock has been requested on this database yet
         if (databaseElement == null) {
 
             //create a new database element
@@ -209,8 +209,8 @@ public class LockManager {
             //get transaction Id
             String transactionId = transaction.getTransactionId();
 
-            //add this database element to acquired lock tree of the transaction
-            this.acquiredLockTreeMap.get(transactionId).addDatabaseLock(databaseName, databaseElement);
+            //add this database element to requested lock tree of the transaction
+            this.requestedLockTreeMap.get(transactionId).addDatabaseLock(databaseName, databaseElement);
 
             //lock is granted
             return true;
@@ -218,17 +218,11 @@ public class LockManager {
 
         boolean granted = databaseElement.acquireLock(transaction, originalLock, appliedLock);
 
-        if (granted) {
-            //get transaction Id
-            String transactionId = transaction.getTransactionId();
+        String transactionId = transaction.getTransactionId();
 
-            //add this database element to acquired lock tree of the transaction
-            this.acquiredLockTreeMap.get(transactionId).addDatabaseLock(databaseName, databaseElement);
+        this.requestedLockTreeMap.get(transactionId).addDatabaseLock(databaseName, databaseElement);
 
-            //lock is granted
-            return true;
-        } else
-            return false;//lock is not granted
+        return granted;
     }
 
     /**
@@ -278,8 +272,8 @@ public class LockManager {
             //get transaction id
             String transactionId = transaction.getTransactionId();
 
-            //get acquired lock tree registered for this transaction
-            this.acquiredLockTreeMap.get(transactionId).addTableLock(databaseName, tableName, tableElement);
+            //get requested lock tree registered for this transaction
+            this.requestedLockTreeMap.get(transactionId).addTableLock(databaseName, tableName, tableElement);
 
             //lock is granted
             return true;
@@ -287,17 +281,11 @@ public class LockManager {
 
         boolean granted = tableElement.acquireLock(transaction, originalLock, appliedLock);
 
-        if (granted) {
-            //get transaction id
-            String transactionId = transaction.getTransactionId();
+        String transactionId = transaction.getTransactionId();
 
-            //get acquired lock tree registered for this transaction
-            this.acquiredLockTreeMap.get(transactionId).addTableLock(databaseName, tableName, tableElement);
+        this.requestedLockTreeMap.get(transactionId).addTableLock(databaseName, tableName, tableElement);
 
-            //lock is granted
-            return true;
-        } else
-            return false;//lock is not granted
+        return granted;
     }
 
     /**
@@ -336,8 +324,8 @@ public class LockManager {
             //get transaction id
             String transactionId = transaction.getTransactionId();
 
-            //get acquired lock tree for this transaction and add this record to its tree
-            acquiredLockTreeMap.get(transactionId).addRecordLock(tableName, recordElement);
+            //get requested lock tree for this transaction and add this record to its tree
+            requestedLockTreeMap.get(transactionId).addRecordLock(tableName, recordElement);
 
             //lock is granted
             return true;
@@ -345,16 +333,11 @@ public class LockManager {
 
         boolean granted = recordElement.acquireLock(transaction, lock, lock);
 
-        if (granted) {
-            //get transaction id
-            String transactionId = transaction.getTransactionId();
+        String transactionId = transaction.getTransactionId();
 
-            //get acquired lock tree for this transaction and add this record to its tree
-            acquiredLockTreeMap.get(transactionId).addRecordLock(tableName, recordElement);
+        this.requestedLockTreeMap.get(transactionId).addRecordLock(tableName, recordElement);
 
-            return true;
-        } else
-            return false;
+        return granted;
     }
 
     /**
@@ -385,11 +368,11 @@ public class LockManager {
         //get transaction id
         String transactionId = transaction.getTransactionId();
 
-        //get acquired lock tree registered for this transaction id
-        RequestedLockTree acquiredLockTree = acquiredLockTreeMap.get(transactionId);
+        //get requested lock tree registered for this transaction id
+        RequestedLockTree requestedLockTree = requestedLockTreeMap.get(transactionId);
 
-        //get the tree of locks acquired by this transaction
-        LinkedList<RequestedLockTreeElement> databases = acquiredLockTree.getAcquiredLockTree();
+        //get the tree of locks requested by this transaction
+        LinkedList<RequestedLockTreeElement> databases = requestedLockTree.getRequestedLockTree();
 
         int databaseListSize = databases.size();
 
@@ -397,35 +380,35 @@ public class LockManager {
         //so for every parent to be unlocked, each child of that parent must be unlocked first(multi granularity policy)
         for (int i = 0; i < databaseListSize; i++) {
 
-            //get an acquired database element from head of the database list
-            RequestedLockTreeElement acquiredDatabaseElement = databases.removeFirst();
+            //get an requested database element from head of the database list
+            RequestedLockTreeElement requestedDatabaseElement = databases.removeFirst();
 
             //first all tables of the database must be unlocked in order for the database to be unlocked
             //so get all locked tables of the database element
-            LinkedList<RequestedLockTreeElement> tables = acquiredDatabaseElement.getChildren();
+            LinkedList<RequestedLockTreeElement> tables = requestedDatabaseElement.getChildren();
 
             int tablesListSize = tables.size();
 
             //loop through tables and unlock each one
             for (int j = 0; j < tablesListSize; j++) {
 
-                //get an acquired table element from head of the table list
-                RequestedLockTreeElement acquiredTableElement = tables.removeFirst();
+                //get an requested table element from head of the table list
+                RequestedLockTreeElement requestedTableElement = tables.removeFirst();
 
                 //first all record of the table must be unlocked in order for the table to be unlocked
                 //so get all lock records of the table element
-                LinkedList<RequestedLockTreeElement> records = acquiredTableElement.getChildren();
+                LinkedList<RequestedLockTreeElement> records = requestedTableElement.getChildren();
 
                 int recordsListSize = records.size();
 
                 for (int k = 0; k < recordsListSize; k++) {
 
-                    //get an acquired record element from head of the record list
-                    RequestedLockTreeElement acquiredRecordElement = records.removeFirst();
+                    //get an requested record element from head of the record list
+                    RequestedLockTreeElement requestedRecordElement = records.removeFirst();
 
-                    //each acquired element contains an element from the lock tree
-                    //get that lock tree element inside of the acquired element
-                    LockTreeElement lockTreeElement = acquiredRecordElement.getLockTreeElement();
+                    //each requested element contains an element from the lock tree
+                    //get that lock tree element inside of the requested element
+                    LockTreeElement lockTreeElement = requestedRecordElement.getLockTreeElement();
 
                     //release the lock held by the transaction and get list of new granted transactions
                     LinkedList<QueueElement> grantedTransactions = lockTreeElement.releaseLock(transactionId);
@@ -436,7 +419,7 @@ public class LockManager {
 
                 //now that every lock held on records of table element by the transaction is released,
                 //we can release the lock on table itself
-                LinkedList<QueueElement> grantedTransactions = acquiredTableElement.getLockTreeElement().releaseLock(transactionId);
+                LinkedList<QueueElement> grantedTransactions = requestedTableElement.getLockTreeElement().releaseLock(transactionId);
 
                 //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
                 addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedTransactions);
@@ -444,7 +427,7 @@ public class LockManager {
 
             //now that every lock held on tables of database element by the transaction is released,
             //we can release the lock on database itself
-            LinkedList<QueueElement> grantedTransactions = acquiredDatabaseElement.getLockTreeElement().releaseLock(transactionId);
+            LinkedList<QueueElement> grantedTransactions = requestedDatabaseElement.getLockTreeElement().releaseLock(transactionId);
 
             //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
             addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedTransactions);
@@ -452,8 +435,8 @@ public class LockManager {
 
         callBackRunnable.exit();
 
-        //delete acquired tree lock tree registered for transaction
-        this.acquiredLockTreeMap.remove(transactionId);
+        //delete requested tree lock tree registered for transaction
+        this.requestedLockTreeMap.remove(transactionId);
 
         //wait for the call back thread to end
         try {

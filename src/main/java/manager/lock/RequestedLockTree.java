@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 /**
- * This class manages locks that a transaction acquire in a general tree structure.
+ * This class manages locks that a transaction requested in a general tree structure.
  *
  * @author m.amin rayej
  * @version 1.0
@@ -18,12 +18,12 @@ public class RequestedLockTree {
     private LinkedList<RequestedLockTreeElement> databases;
 
     /**
-     * map between database name and its element in acquire tree
+     * map between database name and its element in requested lock tree
      */
     private HashMap<String, RequestedLockTreeElement> databaseMap;
 
     /**
-     * map between table name and its element in acquire tree
+     * map between table name and its element in requested lock tree
      */
     private HashMap<String, RequestedLockTreeElement> tableMap;
 
@@ -40,75 +40,75 @@ public class RequestedLockTree {
     }
 
     /**
-     * add a database lock to the locks that transaction has acquired till now
+     * add a database lock to the locks that transaction has requested till now
      *
-     * @param databaseName name of the database that is locked by the transaction
+     * @param databaseName name of the database that is requested by the transaction
      * @param databaseElement lock tree element in lock tree that represents this database
      * @since 1.0
      */
     public void addDatabaseLock(String databaseName, LockTreeElement databaseElement) {
 
-        //create a new acquired lock element to represent the new locked database in acquire lock tree
-        RequestedLockTreeElement acquiredDatabaseElement = new RequestedLockTreeElement(databaseElement, true);
+        //create a new requested lock element to represent the new locked database in acquire lock tree
+        RequestedLockTreeElement requestedDatabaseElement = new RequestedLockTreeElement(databaseElement, true);
 
-        //add the new acquired lock to the head of the queue
-        this.databases.addFirst(acquiredDatabaseElement);
+        //add the new requested lock to the head of the queue
+        this.databases.addFirst(requestedDatabaseElement);
 
-        //add new acquired database lock to its hash map
+        //add new requested database lock to its hash map
         //this lets us retrieve the database lock faster
-        this.databaseMap.put(databaseName, acquiredDatabaseElement);
+        this.databaseMap.put(databaseName, requestedDatabaseElement);
     }
 
     /**
-     * add a table lock to the locks that transaction has acquired till now
+     * add a table lock to the locks that transaction has requested till now
      *
      * @param databaseName  name of the database that contains the table name
      * @param tableName name of the table that is locked by the transaction
-     * @param tableElement lock tree table element that represents the acquired lock in lock tree
+     * @param tableElement lock tree table element that represents the requested lock in lock tree
      * @since 1.0
      */
     public void addTableLock(String databaseName, String tableName, LockTreeElement tableElement) {
 
-        //create a new acquired lock element to represent the new locked table in acquire lock tree
-        RequestedLockTreeElement acquiredTableElement = new RequestedLockTreeElement(tableElement, true);
+        //create a new requested lock element to represent the new locked table in requested lock tree
+        RequestedLockTreeElement requestedTableElement = new RequestedLockTreeElement(tableElement, true);
 
         //get database element that contains the table
-        RequestedLockTreeElement acquiredDatabaseElement = databaseMap.get(databaseName);
+        RequestedLockTreeElement requestedDatabaseElement = databaseMap.get(databaseName);
 
-        //add new acquired table element to its database
-        acquiredDatabaseElement.addChild(acquiredTableElement);
+        //add new requested table element to its database
+        requestedDatabaseElement.addChild(requestedTableElement);
 
-        //add new acquired table lock to its hash map
+        //add new requested table lock to its hash map
         //this lets us retrieve the table lock faster
-        tableMap.put(tableName, acquiredTableElement);
+        tableMap.put(tableName, requestedTableElement);
     }
 
     /**
-     * add a record lock to the locks that transaction has acquired till now
+     * add a record lock to the locks that transaction has requested till now
      *
      * @param table name of the table containing the record
-     * @param recordElement lock tree element that represents the acquired lock in lock tree
+     * @param recordElement lock tree element that represents the requested lock in lock tree
      * @since 1.0
      */
     public void addRecordLock(String table, LockTreeElement recordElement) {
 
-        //create a new acquired lock element to represent the new locked record in acquire lock tree
-        RequestedLockTreeElement acquiredRecordElement = new RequestedLockTreeElement(recordElement, false);
+        //create a new requested lock element to represent the new locked record in requested lock tree
+        RequestedLockTreeElement requestedRecordElement = new RequestedLockTreeElement(recordElement, false);
 
         //get table element that contains the record
-        RequestedLockTreeElement acquiredTableElement = tableMap.get(table);
+        RequestedLockTreeElement requestedTableElement = tableMap.get(table);
 
-        //add new acquired record element to its table
-        acquiredTableElement.addChild(acquiredRecordElement);
+        //add new requested record element to its table
+        requestedTableElement.addChild(requestedRecordElement);
     }
 
     /**
-     * get acquired lock tree
+     * get requested lock tree
      *
-     * @return the acquired lock tree
+     * @return the requested lock tree
      * @since 1.0
      */
-    public LinkedList<RequestedLockTreeElement> getAcquiredLockTree() {
+    public LinkedList<RequestedLockTreeElement> getRequestedLockTree() {
         return this.databases;
     }
 }

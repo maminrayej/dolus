@@ -3,7 +3,7 @@ package manager.lock;
 import java.util.LinkedList;
 
 /**
- * This class represents an element in the acquired lock tree
+ * This class represents an element in the requested lock tree
  *
  * @author m.amin rayej
  * @version 1.0
@@ -17,7 +17,7 @@ public class RequestedLockTreeElement {
     private LockTreeElement lockTreeElement;
 
     /**
-     * list of children of this element in acquired lock tree
+     * list of children of this element in requested lock tree
      */
     private LinkedList<RequestedLockTreeElement> children;
 
@@ -25,7 +25,7 @@ public class RequestedLockTreeElement {
      * default constructor
      *
      * @param lockTreeElement element in lock tree
-     * @param hasChild determines if this acquired element can have child elements or not
+     * @param hasChild determines if this requested element can have child elements or not
      * @since 1.0
      */
     public RequestedLockTreeElement(LockTreeElement lockTreeElement, boolean hasChild) {
@@ -41,11 +41,11 @@ public class RequestedLockTreeElement {
     /**
      * adds a child element to this element
      *
-     * @param acquiredLockTreeElement element to be added as a child
+     * @param requestedLockTreeElement element to be added as a child
      * @since 1.0
      */
-    public void addChild(RequestedLockTreeElement acquiredLockTreeElement) {
-        children.addFirst(acquiredLockTreeElement);
+    public void addChild(RequestedLockTreeElement requestedLockTreeElement) {
+        children.addFirst(requestedLockTreeElement);
     }
 
     /**
