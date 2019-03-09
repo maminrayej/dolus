@@ -142,6 +142,9 @@ public class LockTreeElement {
                 //remove the element from waiting queue
                 waitingQueue.remove();
 
+                //remove the waiting request from waiting map
+                waitingMap.remove(waitingRequest.getTransaction().getTransactionId());
+
                 //add element to granted list
                 grantedList.add(waitingRequest);
 
