@@ -55,10 +55,12 @@ public class LockManager {
         LockManager lockManager = new LockManager();
 
         Transaction transaction1 = new Transaction("1");
+        Transaction transaction2 = new Transaction("2");
 
         Thread thread1 = new Thread(() -> {
+
             lockManager.lock(transaction1, new Lock("database1", LockTypes.UPDATE));
-            lockManager.lock(transaction1, new Lock("database2", LockTypes.UPDATE));
+            lockManager.lock(transaction2, new Lock("database1", LockTypes.UPDATE));
 
             try {
                 Thread.sleep(1000);

@@ -34,8 +34,8 @@ public class CallBackRunnable implements Runnable {
     @Override
     public void run() {
 
-        boolean isFirstQueueEmpty = true;
-        boolean isSecondQueueEmpty = true;
+        boolean isFirstQueueEmpty = false;
+        boolean isSecondQueueEmpty = false;
 
         while (!(exit && isFirstQueueEmpty && isSecondQueueEmpty)) {
 
@@ -49,7 +49,8 @@ public class CallBackRunnable implements Runnable {
 
                 //unlock the first queue
                 firstQueueLock.unlock();
-            } else if (secondQueueLock.tryLock()) {
+            }
+            if (secondQueueLock.tryLock()) {
 
                 isSecondQueueEmpty = secondQueue.isEmpty();
 
@@ -60,8 +61,6 @@ public class CallBackRunnable implements Runnable {
                 secondQueueLock.unlock();
             }
         }
-
-
     }
 
     /**
