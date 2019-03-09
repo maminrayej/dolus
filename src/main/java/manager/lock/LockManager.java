@@ -60,11 +60,10 @@ public class LockManager {
             lockManager.lock(transaction1, new Lock("database1", LockTypes.UPDATE));
             lockManager.lock(transaction1, new Lock("database2", LockTypes.UPDATE));
 
-            try{
+            try {
                 Thread.sleep(1000);
                 lockManager.unlock(transaction1);
-            }
-            catch (InterruptedException e){
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         });
@@ -429,55 +428,24 @@ public class LockManager {
                     //release the lock held by the transaction and get list of new granted transactions
                     LinkedList<QueueElement> grantedTransactions = lockTreeElement.releaseLock(transactionId);
 
-                    //add granted transactions to the shared memory with call back thread
-                    //call back thread will inform each transaction of its granted lock
-                    //try to lock the first queue
-                    if (firstQueueLock.tryLock()) {
-
-                        //add all transactions to the first queue
-                        firstQueue.addAll(grantedTransactions);
-
-                        //unlock the first queue
-                        firstQueueLock.unlock();
-                    }
-                    else if (secondQueueLock.tryLock()) {
-
-                        //add all transactions to the second queue
-                        secondQueue.addAll(grantedTransactions);
-
-                        //unlock the second queue
-                        secondQueueLock.unlock();
-                    }
+                    //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
+                    addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedTransactions);
                 }
 
                 //now that every lock held on records of table element by the transaction is released,
                 //we can release the lock on table itself
                 LinkedList<QueueElement> grantedTransactions = acquiredTableElement.getLockTreeElement().releaseLock(transactionId);
 
-                //add granted transactions to the shared memory with call back thread
-                //call back thread will inform each transaction of its granted lock
-                //try to lock the first queue
-                if (firstQueueLock.tryLock()) {
-
-                    //add all transactions to the first queue
-                    firstQueue.addAll(grantedTransactions);
-
-                    //unlock the first queue
-                    firstQueueLock.unlock();
-                }
-                else if (secondQueueLock.tryLock()) {
-
-                    //add all transactions to the second queue
-                    secondQueue.addAll(grantedTransactions);
-
-                    //unlock the second queue
-                    secondQueueLock.unlock();
-                }
+                //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
+                addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedTransactions);
             }
 
             //now that every lock held on tables of database element by the transaction is released,
             //we can release the lock on database itself
-            acquiredDatabaseElement.getLockTreeElement().releaseLock(transactionId);
+            LinkedList<QueueElement> grantedTransactions = acquiredDatabaseElement.getLockTreeElement().releaseLock(transactionId);
+
+            //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
+            addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedTransactions);
         }
 
         callBackRunnable.exit();
@@ -492,6 +460,43 @@ public class LockManager {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * Adds granted transactions to the first available queue
+     *
+     * @param firstQueueLock lock on first queue
+     * @param secondQueueLock lock on second queue
+     * @param firstQueue first queue
+     * @param secondQueue second queue
+     * @param grantedTransactions list of granted transactions
+     */
+    private void addToQueue(ReentrantLock firstQueueLock, ReentrantLock secondQueueLock,
+                            Queue<QueueElement> firstQueue , Queue<QueueElement> secondQueue,
+                            LinkedList<QueueElement> grantedTransactions) {
+
+        //if there is no granted transaction then there is no element to add! -> return
+        if (grantedTransactions == null)
+            return;
+
+        //add granted transactions to the shared memory with call back thread
+        //call back thread will inform each transaction of its granted lock
+        //try to lock the first queue
+        if (firstQueueLock.tryLock()) {
+
+            //add all transactions to the first queue
+            firstQueue.addAll(grantedTransactions);
+
+            //unlock the first queue
+            firstQueueLock.unlock();
+        } else if (secondQueueLock.tryLock()) {
+
+            //add all transactions to the second queue
+            secondQueue.addAll(grantedTransactions);
+
+            //unlock the second queue
+            secondQueueLock.unlock();
+        }
     }
 
 }

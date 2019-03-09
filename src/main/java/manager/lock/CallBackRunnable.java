@@ -34,10 +34,15 @@ public class CallBackRunnable implements Runnable {
     @Override
     public void run() {
 
-        while (!exit && firstQueue.isEmpty() && secondQueue.isEmpty()) {
+        boolean isFirstQueueEmpty = true;
+        boolean isSecondQueueEmpty = true;
+
+        while (!(exit && isFirstQueueEmpty && isSecondQueueEmpty)) {
 
             //try to lock the first queue
             if (firstQueueLock.tryLock()) {
+
+                isFirstQueueEmpty = firstQueue.isEmpty();
 
                 //inform all transactions in the first queue of their granted locks
                 informTransaction(firstQueue);
@@ -45,6 +50,8 @@ public class CallBackRunnable implements Runnable {
                 //unlock the first queue
                 firstQueueLock.unlock();
             } else if (secondQueueLock.tryLock()) {
+
+                isSecondQueueEmpty = secondQueue.isEmpty();
 
                 //inform all transactions in the first queue of their granted locks
                 informTransaction(secondQueue);
@@ -65,8 +72,10 @@ public class CallBackRunnable implements Runnable {
      */
     private void informTransaction(Queue<QueueElement> queue) {
 
+        int queueSize = queue.size();
+
         //loop through the queue and inform each transaction of its granted lock
-        for (int i = 0; i < queue.size(); i++) {
+        for (int i = 0; i < queueSize; i++) {
 
             //get the head of the queue
             QueueElement queueElement = queue.remove();
