@@ -36,7 +36,7 @@ public class LockManager {
     /**
      * Mapping between a transaction and its acquired locks
      */
-    private HashMap<String, AcquiredLockTree> acquiredLockTreeMap;
+    private HashMap<String, RequestedLockTree> acquiredLockTreeMap;
 
     /**
      * Default constructor
@@ -92,11 +92,11 @@ public class LockManager {
         String transactionId = transaction.getTransactionId();
 
         //get acquired lock tree registered for this transaction
-        AcquiredLockTree acquiredLockTree = acquiredLockTreeMap.get(transactionId);
+        RequestedLockTree acquiredLockTree = acquiredLockTreeMap.get(transactionId);
 
         //if there is no acquired lock tree registered for this transaction -> register one!
         if (acquiredLockTree == null)
-            acquiredLockTreeMap.put(transactionId, new AcquiredLockTree());
+            acquiredLockTreeMap.put(transactionId, new RequestedLockTree());
 
         //get name of the database to be locked
         String database = lock.getDatabase();
@@ -386,10 +386,10 @@ public class LockManager {
         String transactionId = transaction.getTransactionId();
 
         //get acquired lock tree registered for this transaction id
-        AcquiredLockTree acquiredLockTree = acquiredLockTreeMap.get(transactionId);
+        RequestedLockTree acquiredLockTree = acquiredLockTreeMap.get(transactionId);
 
         //get the tree of locks acquired by this transaction
-        LinkedList<AcquiredLockTreeElement> databases = acquiredLockTree.getAcquiredLockTree();
+        LinkedList<RequestedLockTreeElement> databases = acquiredLockTree.getAcquiredLockTree();
 
         int databaseListSize = databases.size();
 
@@ -398,11 +398,11 @@ public class LockManager {
         for (int i = 0; i < databaseListSize; i++) {
 
             //get an acquired database element from head of the database list
-            AcquiredLockTreeElement acquiredDatabaseElement = databases.removeFirst();
+            RequestedLockTreeElement acquiredDatabaseElement = databases.removeFirst();
 
             //first all tables of the database must be unlocked in order for the database to be unlocked
             //so get all locked tables of the database element
-            LinkedList<AcquiredLockTreeElement> tables = acquiredDatabaseElement.getChildren();
+            LinkedList<RequestedLockTreeElement> tables = acquiredDatabaseElement.getChildren();
 
             int tablesListSize = tables.size();
 
@@ -410,18 +410,18 @@ public class LockManager {
             for (int j = 0; j < tablesListSize; j++) {
 
                 //get an acquired table element from head of the table list
-                AcquiredLockTreeElement acquiredTableElement = tables.removeFirst();
+                RequestedLockTreeElement acquiredTableElement = tables.removeFirst();
 
                 //first all record of the table must be unlocked in order for the table to be unlocked
                 //so get all lock records of the table element
-                LinkedList<AcquiredLockTreeElement> records = acquiredTableElement.getChildren();
+                LinkedList<RequestedLockTreeElement> records = acquiredTableElement.getChildren();
 
                 int recordsListSize = records.size();
 
                 for (int k = 0; k < recordsListSize; k++) {
 
                     //get an acquired record element from head of the record list
-                    AcquiredLockTreeElement acquiredRecordElement = records.removeFirst();
+                    RequestedLockTreeElement acquiredRecordElement = records.removeFirst();
 
                     //each acquired element contains an element from the lock tree
                     //get that lock tree element inside of the acquired element

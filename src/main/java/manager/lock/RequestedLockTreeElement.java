@@ -9,7 +9,7 @@ import java.util.LinkedList;
  * @version 1.0
  * @since 1.0
  */
-public class AcquiredLockTreeElement {
+public class RequestedLockTreeElement {
 
     /**
      * element in lock tree
@@ -19,7 +19,7 @@ public class AcquiredLockTreeElement {
     /**
      * list of children of this element in acquired lock tree
      */
-    private LinkedList<AcquiredLockTreeElement> children;
+    private LinkedList<RequestedLockTreeElement> children;
 
     /**
      * default constructor
@@ -28,7 +28,7 @@ public class AcquiredLockTreeElement {
      * @param hasChild determines if this acquired element can have child elements or not
      * @since 1.0
      */
-    public AcquiredLockTreeElement(LockTreeElement lockTreeElement, boolean hasChild) {
+    public RequestedLockTreeElement(LockTreeElement lockTreeElement, boolean hasChild) {
 
         this.lockTreeElement = lockTreeElement;
 
@@ -44,7 +44,7 @@ public class AcquiredLockTreeElement {
      * @param acquiredLockTreeElement element to be added as a child
      * @since 1.0
      */
-    public void addChild(AcquiredLockTreeElement acquiredLockTreeElement) {
+    public void addChild(RequestedLockTreeElement acquiredLockTreeElement) {
         children.addFirst(acquiredLockTreeElement);
     }
 
@@ -64,7 +64,7 @@ public class AcquiredLockTreeElement {
      * @return list of children elements
      * @since 1.0
      */
-    public LinkedList<AcquiredLockTreeElement> getChildren() {
+    public LinkedList<RequestedLockTreeElement> getChildren() {
         return children;
     }
 }

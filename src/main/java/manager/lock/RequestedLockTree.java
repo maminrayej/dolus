@@ -10,29 +10,29 @@ import java.util.LinkedList;
  * @version 1.0
  * @since 1.0
  */
-public class AcquiredLockTree {
+public class RequestedLockTree {
 
     /**
      * linked list containing all databases that transaction has locked.
      */
-    private LinkedList<AcquiredLockTreeElement> databases;
+    private LinkedList<RequestedLockTreeElement> databases;
 
     /**
      * map between database name and its element in acquire tree
      */
-    private HashMap<String, AcquiredLockTreeElement> databaseMap;
+    private HashMap<String, RequestedLockTreeElement> databaseMap;
 
     /**
      * map between table name and its element in acquire tree
      */
-    private HashMap<String, AcquiredLockTreeElement> tableMap;
+    private HashMap<String, RequestedLockTreeElement> tableMap;
 
     /**
      * default constructor
      *
      * @since 1.0
      */
-    public AcquiredLockTree() {
+    public RequestedLockTree() {
 
         this.databases = new LinkedList<>();
         this.databaseMap = new HashMap<>();
@@ -49,7 +49,7 @@ public class AcquiredLockTree {
     public void addDatabaseLock(String databaseName, LockTreeElement databaseElement) {
 
         //create a new acquired lock element to represent the new locked database in acquire lock tree
-        AcquiredLockTreeElement acquiredDatabaseElement = new AcquiredLockTreeElement(databaseElement, true);
+        RequestedLockTreeElement acquiredDatabaseElement = new RequestedLockTreeElement(databaseElement, true);
 
         //add the new acquired lock to the head of the queue
         this.databases.addFirst(acquiredDatabaseElement);
@@ -70,10 +70,10 @@ public class AcquiredLockTree {
     public void addTableLock(String databaseName, String tableName, LockTreeElement tableElement) {
 
         //create a new acquired lock element to represent the new locked table in acquire lock tree
-        AcquiredLockTreeElement acquiredTableElement = new AcquiredLockTreeElement(tableElement, true);
+        RequestedLockTreeElement acquiredTableElement = new RequestedLockTreeElement(tableElement, true);
 
         //get database element that contains the table
-        AcquiredLockTreeElement acquiredDatabaseElement = databaseMap.get(databaseName);
+        RequestedLockTreeElement acquiredDatabaseElement = databaseMap.get(databaseName);
 
         //add new acquired table element to its database
         acquiredDatabaseElement.addChild(acquiredTableElement);
@@ -93,10 +93,10 @@ public class AcquiredLockTree {
     public void addRecordLock(String table, LockTreeElement recordElement) {
 
         //create a new acquired lock element to represent the new locked record in acquire lock tree
-        AcquiredLockTreeElement acquiredRecordElement = new AcquiredLockTreeElement(recordElement, false);
+        RequestedLockTreeElement acquiredRecordElement = new RequestedLockTreeElement(recordElement, false);
 
         //get table element that contains the record
-        AcquiredLockTreeElement acquiredTableElement = tableMap.get(table);
+        RequestedLockTreeElement acquiredTableElement = tableMap.get(table);
 
         //add new acquired record element to its table
         acquiredTableElement.addChild(acquiredRecordElement);
@@ -108,7 +108,7 @@ public class AcquiredLockTree {
      * @return the acquired lock tree
      * @since 1.0
      */
-    public LinkedList<AcquiredLockTreeElement> getAcquiredLockTree() {
+    public LinkedList<RequestedLockTreeElement> getAcquiredLockTree() {
         return this.databases;
     }
 }
