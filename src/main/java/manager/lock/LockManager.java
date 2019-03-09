@@ -64,6 +64,7 @@ public class LockManager {
 
             try {
                 Thread.sleep(1000);
+                lockManager.unlock(transaction1);
                 lockManager.unlock(transaction2);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -349,8 +350,8 @@ public class LockManager {
     public synchronized void unlock(Transaction transaction) {
 
         //create shared queues
-        Queue<QueueElement> firstQueue = new LinkedList<>();
-        Queue<QueueElement> secondQueue = new LinkedList<>();
+        Queue<LockRequest> firstQueue = new LinkedList<>();
+        Queue<LockRequest> secondQueue = new LinkedList<>();
 
         //create locks for queues
         ReentrantLock firstQueueLock = new ReentrantLock();
@@ -411,7 +412,7 @@ public class LockManager {
                     LockTreeElement lockTreeElement = requestedRecordElement.getLockTreeElement();
 
                     //release the lock held by the transaction and get list of new granted transactions
-                    LinkedList<QueueElement> grantedTransactions = lockTreeElement.releaseLock(transactionId);
+                    LinkedList<LockRequest> grantedTransactions = lockTreeElement.releaseLock(transactionId);
 
                     //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
                     addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedTransactions);
@@ -419,7 +420,7 @@ public class LockManager {
 
                 //now that every lock held on records of table element by the transaction is released,
                 //we can release the lock on table itself
-                LinkedList<QueueElement> grantedTransactions = requestedTableElement.getLockTreeElement().releaseLock(transactionId);
+                LinkedList<LockRequest> grantedTransactions = requestedTableElement.getLockTreeElement().releaseLock(transactionId);
 
                 //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
                 addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedTransactions);
@@ -427,7 +428,7 @@ public class LockManager {
 
             //now that every lock held on tables of database element by the transaction is released,
             //we can release the lock on database itself
-            LinkedList<QueueElement> grantedTransactions = requestedDatabaseElement.getLockTreeElement().releaseLock(transactionId);
+            LinkedList<LockRequest> grantedTransactions = requestedDatabaseElement.getLockTreeElement().releaseLock(transactionId);
 
             //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
             addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedTransactions);
@@ -457,8 +458,8 @@ public class LockManager {
      * @param grantedTransactions list of granted transactions
      */
     private void addToQueue(ReentrantLock firstQueueLock, ReentrantLock secondQueueLock,
-                            Queue<QueueElement> firstQueue , Queue<QueueElement> secondQueue,
-                            LinkedList<QueueElement> grantedTransactions) {
+                            Queue<LockRequest> firstQueue , Queue<LockRequest> secondQueue,
+                            LinkedList<LockRequest> grantedTransactions) {
 
         //if there is no granted transaction then there is no element to add! -> return
         if (grantedTransactions == null)

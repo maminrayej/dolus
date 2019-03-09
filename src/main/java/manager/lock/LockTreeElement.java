@@ -20,24 +20,24 @@ public class LockTreeElement {
     /**
      * List of transactions which their request to access this element is granted
      */
-    private List<QueueElement> grantedList;
+    private List<LockRequest> grantedList;
 
     /**
      * Queue of transactions which their request to access this element is not granted
      */
-    private Queue<QueueElement> waitingQueue;
+    private Queue<LockRequest> waitingQueue;
 
     /**
      * Mapping between a transaction Id to its element in the granted list
      * this data structure is used to retrieve the granted transactions fast
      */
-    private HashMap<String, QueueElement> grantedMap;
+    private HashMap<String, LockRequest> grantedMap;
 
     /**
      * Mapping between a transaction id to its element in the waiting list
      * this data structure is used to retrieve the waiting requests fast
      */
-    private HashMap<String, QueueElement> waitingMap;
+    private HashMap<String, LockRequest> waitingMap;
 
     /**
      * Keeps current active lock type. if a compatible lock request acquires this element but
@@ -73,20 +73,20 @@ public class LockTreeElement {
      * @return a linked list of transactions that are now granted because of the released lock, or null if both granted and waiting list of this element is empty
      * @since 1.0
      */
-    public LinkedList<QueueElement> releaseLock(String transactionId) {
+    public LinkedList<LockRequest> releaseLock(String transactionId) {
 
         //get queue element that represents this transaction id in granted list
         //we use granted map for fast retrieval of elements
-        QueueElement queueElement = grantedMap.get(transactionId);
+        LockRequest grantedRequest = grantedMap.get(transactionId);
 
         //there is no granted lock held by this transaction of this element
-        if (queueElement == null) {
+        if (grantedRequest == null) {
 
             //retrieve the element in waiting queue that represents the requested lock by transaction
-            QueueElement queueElement1 = waitingMap.get(transactionId);
+            LockRequest waitingRequest = waitingMap.get(transactionId);
 
             //remove the lock requested by the transaction from waiting list
-            waitingQueue.remove(queueElement1);
+            waitingQueue.remove(waitingRequest);
 
             //remove the transaction request entry from waiting map
             waitingMap.remove(transactionId);
@@ -108,7 +108,7 @@ public class LockTreeElement {
         grantedMap.remove(transactionId);
 
         //remove the transaction from granted list
-        grantedList.remove(queueElement);
+        grantedList.remove(grantedRequest);
 
         //update current active lock type after removing the element from granted list
         //if there is no element left is the granted list -> set lock type to no active lock
@@ -119,7 +119,7 @@ public class LockTreeElement {
             currentActiveLockType = grantedList.get(0).getAppliedLock().getType();
 
         //list of transactions that are granted now because of the released lock
-        LinkedList<QueueElement> grantedTransactions = new LinkedList<>();
+        LinkedList<LockRequest> grantedTransactions = new LinkedList<>();
 
         //flag to see if we should sort the granted list after the loop or not
         boolean isGrantedListChanged = false;
@@ -128,10 +128,10 @@ public class LockTreeElement {
         for (int i = 0; i < waitingQueue.size(); i++) {
 
             //get first element in the waiting queue
-            QueueElement waitingElement = waitingQueue.peek();
+            LockRequest waitingRequest = waitingQueue.peek();
 
             //check whether the requested lock by waiting element is compatible with current active lock type
-            boolean isCompatible = checkCompatibility(waitingElement.getAppliedLock());
+            boolean isCompatible = checkCompatibility(waitingRequest.getAppliedLock());
 
             //if requested lock type by waiting element is compatible with current active lock type
             if (isCompatible) {
@@ -143,27 +143,27 @@ public class LockTreeElement {
                 waitingQueue.remove();
 
                 //add element to granted list
-                grantedList.add(waitingElement);
+                grantedList.add(waitingRequest);
 
                 //add element to granted map
-                grantedMap.put(waitingElement.getTransaction().getTransactionId(), waitingElement);
+                grantedMap.put(waitingRequest.getTransaction().getTransactionId(), waitingRequest);
 
                 //add the transaction to the granted transactions list to inform lock manager
-                grantedTransactions.addFirst(waitingElement);
+                grantedTransactions.addFirst(waitingRequest);
 
                 //update current active lock type of this element
                 //this helps us to update the active lock type without having to sort the granted list every time a transaction is granted
                 //locks with more restrictions are numbered lower, so if lock type of the new granted element is lower than current active lock type,
                 //then current active lock type must be updated
-                if (waitingElement.getAppliedLock().getType() < currentActiveLockType)
-                    currentActiveLockType = waitingElement.getAppliedLock().getType();
+                if (waitingRequest.getAppliedLock().getType() < currentActiveLockType)
+                    currentActiveLockType = waitingRequest.getAppliedLock().getType();
             } else// element add the head of queue can not be granted
                 break;
         }
 
         //if granted list is changed, it must be sorted
         if (isGrantedListChanged)
-            grantedList.sort(new QueueElementComparator());
+            grantedList.sort(new LockRequestComparator());
 
         //check whether there is any requested or granted lock on this element
         if (waitingQueue.size() == 0 && grantedList.size() == 0) {
@@ -191,17 +191,17 @@ public class LockTreeElement {
 
         if (isCompatible) {
 
-            //wrap a QueueElement object around transaction and its lock request
-            QueueElement queueElement = new QueueElement(transaction, originalLock, appliedLock);
+            //wrap a LockRequest object around transaction and its lock request
+            LockRequest lockRequest = new LockRequest(transaction, originalLock, appliedLock);
 
             //add granted request to grant list
-            grantedList.add(queueElement);
+            grantedList.add(lockRequest);
 
             //add granted request to granted map
-            grantedMap.put(transaction.getTransactionId(), queueElement);
+            grantedMap.put(transaction.getTransactionId(), lockRequest);
 
             //sort the granted list so that most restrictive lock comes to the head of the granted list
-            grantedList.sort(new QueueElementComparator());
+            grantedList.sort(new LockRequestComparator());
 
             //get head of the list
             //get its applied lock on this element
@@ -212,14 +212,14 @@ public class LockTreeElement {
             //request is granted
             return true;
         } else {
-            //wrap a QueueElement object around transaction and its lock request
-            QueueElement queueElement = new QueueElement(transaction, originalLock, appliedLock);
+            //wrap a LockRequest object around transaction and its lock request
+            LockRequest lockRequest = new LockRequest(transaction, originalLock, appliedLock);
 
             //add the element to the waiting queue
-            waitingQueue.add(queueElement);
+            waitingQueue.add(lockRequest);
 
             //add the request to the waiting map
-            waitingMap.put(transaction.getTransactionId(), queueElement);
+            waitingMap.put(transaction.getTransactionId(), lockRequest);
 
             //request is not granted
             return false;

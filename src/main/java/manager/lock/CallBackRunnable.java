@@ -16,15 +16,15 @@ public class CallBackRunnable implements Runnable {
 
     private volatile boolean exit = false;
 
-    private Queue<QueueElement> firstQueue;
+    private Queue<LockRequest> firstQueue;
 
-    private Queue<QueueElement> secondQueue;
+    private Queue<LockRequest> secondQueue;
 
     private ReentrantLock firstQueueLock;
 
     private ReentrantLock secondQueueLock;
 
-    public CallBackRunnable(Queue<QueueElement> firstQueue, Queue<QueueElement> secondQueue, ReentrantLock firstQueueLock, ReentrantLock secondQueueLock) {
+    public CallBackRunnable(Queue<LockRequest> firstQueue, Queue<LockRequest> secondQueue, ReentrantLock firstQueueLock, ReentrantLock secondQueueLock) {
         this.firstQueue = firstQueue;
         this.secondQueue = secondQueue;
         this.firstQueueLock = firstQueueLock;
@@ -69,7 +69,7 @@ public class CallBackRunnable implements Runnable {
      * @param queue queue of granted requests
      * @since 1.0
      */
-    private void informTransaction(Queue<QueueElement> queue) {
+    private void informTransaction(Queue<LockRequest> queue) {
 
         int queueSize = queue.size();
 
@@ -77,13 +77,13 @@ public class CallBackRunnable implements Runnable {
         for (int i = 0; i < queueSize; i++) {
 
             //get the head of the queue
-            QueueElement queueElement = queue.remove();
+            LockRequest lockRequest = queue.remove();
 
             //get transaction
-            Transaction transaction = queueElement.getTransaction();
+            Transaction transaction = lockRequest.getTransaction();
 
             //get granted lock
-            Lock lock = queueElement.getAppliedLock();
+            Lock lock = lockRequest.getAppliedLock();
 
             //inform the transaction that requested lock is granted
             transaction.lockIsGranted(lock);

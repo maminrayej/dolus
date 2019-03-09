@@ -3,13 +3,13 @@ package manager.lock;
 import manager.transaction.Transaction;
 
 /**
- * This class is a container for transaction and its requested originalLock and
+ * This class is a container for transaction and its requested lock and applied lock
  *
  * @author m.amin.rayej
  * @version 1.0
  * @since 1.0
  */
-public class QueueElement {
+public class LockRequest {
 
     private Transaction transaction;
     private Lock originalLock;
@@ -20,10 +20,10 @@ public class QueueElement {
      *
      * @param transaction  transaction
      * @param originalLock original requested lock by transaction
-     * @param appliedLock  lock this is applied to this element
+     * @param appliedLock  lock that is applied to the element containing this request lock
      * @since 1.0
      */
-    public QueueElement(Transaction transaction, Lock originalLock, Lock appliedLock) {
+    public LockRequest(Transaction transaction, Lock originalLock, Lock appliedLock) {
         this.transaction = transaction;
         this.originalLock = originalLock;
         this.appliedLock = appliedLock;
