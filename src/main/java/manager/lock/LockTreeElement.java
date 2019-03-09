@@ -74,6 +74,9 @@ public class LockTreeElement {
         //there is no granted lock held by this transaction of this element
         if (queueElement == null) {
 
+            //must remove the requested lock in the waiting queue
+            //CODE HERE
+
             //if both granted and waiting list of this element is empty,
             //it should be removed by the lock manager from lock tree
             if (waitingQueue.size() == 0 && grantedList.size() == 0) {
@@ -92,6 +95,14 @@ public class LockTreeElement {
 
         //remove the transaction from granted list
         grantedList.remove(queueElement);
+
+        //update current active lock type after removing the element from granted list
+        //if there is no element left is the granted list -> set lock type to no active lock
+        //else set the active lock type to the head of the queue
+        if (grantedList.size() == 0)
+            currentActiveLockType = LockTypes.NO_LOCK;
+        else
+            currentActiveLockType = grantedList.get(0).getAppliedLock().getType();
 
         //list of transactions that are granted now because of the released lock
         LinkedList<QueueElement> grantedTransactions = new LinkedList<>();
