@@ -56,29 +56,16 @@ public class LockManager {
 
         Transaction transaction1 = new Transaction("1");
 
-        Thread thread1 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                lockManager.lock(transaction1, new Lock("table1", LockTypes.UPDATE));
-                lockManager.lock(transaction1, new Lock("table2", LockTypes.UPDATE));
-                lockManager.lock(transaction1, new Lock("table3", LockTypes.UPDATE));
-                lockManager.lock(transaction1, new Lock("table4", LockTypes.UPDATE));
-                lockManager.lock(transaction1, new Lock("table5", LockTypes.UPDATE));
-                lockManager.lock(transaction1, new Lock("table6", LockTypes.UPDATE));
-                lockManager.lock(transaction1, new Lock("table7", LockTypes.UPDATE));
-                lockManager.lock(transaction1, new Lock("table8", LockTypes.UPDATE));
-                lockManager.lock(transaction1, new Lock("table9", LockTypes.UPDATE));
-                lockManager.lock(transaction1, new Lock("table10", LockTypes.UPDATE));
-                lockManager.lock(transaction1, new Lock("table11", LockTypes.UPDATE));
-                lockManager.lock(transaction1, new Lock("table12", LockTypes.UPDATE));
+        Thread thread1 = new Thread(() -> {
+            lockManager.lock(transaction1, new Lock("database1", LockTypes.UPDATE));
+            lockManager.lock(transaction1, new Lock("database2", LockTypes.UPDATE));
 
-                try{
-                    Thread.sleep(1000);
-                    lockManager.unlock(transaction1);
-                }
-                catch (InterruptedException e){
-                    e.printStackTrace();
-                }
+            try{
+                Thread.sleep(1000);
+                lockManager.unlock(transaction1);
+            }
+            catch (InterruptedException e){
+                e.printStackTrace();
             }
         });
 
@@ -403,9 +390,11 @@ public class LockManager {
         //get the tree of locks acquired by this transaction
         LinkedList<AcquiredLockTreeElement> databases = acquiredLockTree.getAcquiredLockTree();
 
+        int databaseListSize = databases.size();
+
         //visit children first and then visit their parents
         //so for every parent to be unlocked, each child of that parent must be unlocked first(multi granularity policy)
-        for (int i = 0; i < databases.size(); i++) {
+        for (int i = 0; i < databaseListSize; i++) {
 
             //get an acquired database element from head of the database list
             AcquiredLockTreeElement acquiredDatabaseElement = databases.removeFirst();
@@ -414,8 +403,10 @@ public class LockManager {
             //so get all locked tables of the database element
             LinkedList<AcquiredLockTreeElement> tables = acquiredDatabaseElement.getChildren();
 
+            int tablesListSize = tables.size();
+
             //loop through tables and unlock each one
-            for (int j = 0; j < tables.size(); j++) {
+            for (int j = 0; j < tablesListSize; j++) {
 
                 //get an acquired table element from head of the table list
                 AcquiredLockTreeElement acquiredTableElement = tables.removeFirst();
@@ -424,7 +415,9 @@ public class LockManager {
                 //so get all lock records of the table element
                 LinkedList<AcquiredLockTreeElement> records = acquiredTableElement.getChildren();
 
-                for (int k = 0; k < records.size(); k++) {
+                int recordsListSize = records.size();
+
+                for (int k = 0; k < recordsListSize; k++) {
 
                     //get an acquired record element from head of the record list
                     AcquiredLockTreeElement acquiredRecordElement = records.removeFirst();
@@ -488,6 +481,9 @@ public class LockManager {
         }
 
         callBackRunnable.exit();
+
+        //delete acquired tree lock tree registered for transaction
+        this.acquiredLockTreeMap.remove(transactionId);
 
         //wait for the call back thread to end
         try {

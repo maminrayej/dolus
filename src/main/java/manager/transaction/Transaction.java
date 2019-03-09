@@ -17,6 +17,6 @@ public class Transaction {
     }
 
     public void lockIsGranted(Lock lock) {
-
+        System.out.println(String.format("Transaction: %s granted with -> (%s,%s,%s)", this.transactionId, lock.getDatabase(), lock.getTable(), lock.getRecord()));
     }
 }
