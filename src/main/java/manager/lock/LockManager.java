@@ -7,6 +7,7 @@ import manager.lock.LockConstants.LockLevels;
 import manager.lock.LockConstants.LockTypes;
 import manager.transaction.Transaction;
 
+import javax.swing.text.html.ObjectView;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -54,6 +55,7 @@ public class LockManager {
 
         //TODO implement degrade method
         //TODO implement cycle detection using jgrapht
+        //TODO delete unused lock tree elements
 
         LockManager lockManager = new LockManager();
 
@@ -66,7 +68,11 @@ public class LockManager {
 
             lockManager.lock(transaction2, new Lock("database1", "table1", LockTypes.UPDATE));
 
-            lockManager.degradeLock(transaction1, new Lock("database1", "table1", LockTypes.EXCLUSIVE), LockTypes.INTENT_SHARED);
+            lockManager.degradeLock(transaction1, new Lock("database1", "table1", LockTypes.EXCLUSIVE), LockTypes.UPDATE);
+
+            lockManager.unlock(transaction1);
+
+            lockManager.unlock(transaction2);
         });
 
         thread1.start();
@@ -197,7 +203,7 @@ public class LockManager {
         if (databaseElement == null) {
 
             //create a new database element
-            databaseElement = new LockTreeDatabaseElement();
+            databaseElement = new LockTreeDatabaseElement(databaseName);
 
             //add this new database element to lock tree
             lockTree.put(databaseName, databaseElement);
@@ -260,7 +266,7 @@ public class LockManager {
         if (tableElement == null) {
 
             //create a new table element
-            tableElement = new LockTreeTableElement();
+            tableElement = new LockTreeTableElement(tableName);
 
             //put this table element in database element that contains it
             databaseElement.putTableElement(tableName, tableElement);
@@ -312,7 +318,7 @@ public class LockManager {
         if (recordElement == null) {
 
             //create a new record element
-            recordElement = new LockTreeElement();
+            recordElement = new LockTreeElement(recordId+"");
 
             //add created record element to its table
             tableElement.putRecordElement(recordId, recordElement);
@@ -412,6 +418,17 @@ public class LockManager {
                     //release the lock held by the transaction and get list of new granted transactions
                     LinkedList<LockRequest> grantedRequests = lockTreeElement.releaseLock(transactionId);
 
+                    //if granted requests is null -> it means there can not be any granted requests
+                    //because both granted and waiting list of the element is empty
+                    //remove the element from lock tree
+                    if (grantedRequests == null) {
+                        LockTreeTableElement tableElement = (LockTreeTableElement) requestedTableElement.getLockTreeElement();
+
+                        LockTreeElement recordElement = requestedRecordElement.getLockTreeElement();
+
+                        tableElement.removeRecordElement(recordElement.getName());
+                    }
+
                     //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
                     addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedRequests);
                 }
@@ -420,6 +437,17 @@ public class LockManager {
                 //we can release the lock on table itself
                 LinkedList<LockRequest> grantedRequests = requestedTableElement.getLockTreeElement().releaseLock(transactionId);
 
+                //if granted requests is null -> it means there can not be any granted requests
+                //because both granted and waiting list of the element is empty
+                //remove the element from lock tree
+                if (grantedRequests == null) {
+                    LockTreeDatabaseElement databaseElement = (LockTreeDatabaseElement) requestedDatabaseElement.getLockTreeElement();
+
+                    LockTreeElement tableElement = requestedTableElement.getLockTreeElement();
+
+                    databaseElement.removeTableElement(tableElement.getName());
+                }
+
                 //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
                 addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedRequests);
             }
@@ -427,6 +455,17 @@ public class LockManager {
             //now that every lock held on tables of database element by the transaction is released,
             //we can release the lock on database itself
             LinkedList<LockRequest> grantedRequests = requestedDatabaseElement.getLockTreeElement().releaseLock(transactionId);
+
+            //if granted requests is null -> it means there can not be any granted requests
+            //because both granted and waiting list of the element is empty
+            //remove the element from lock tree
+            if (grantedRequests == null) {
+
+                LockTreeElement databaseElement = requestedDatabaseElement.getLockTreeElement();
+
+                lockTree.remove(databaseElement.getName());
+
+            }
 
             //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
             addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedRequests);
@@ -461,13 +500,14 @@ public class LockManager {
         //get table name
         String tableName = lock.getTable();
 
-        //get requested requested lock tree created for this transaction
+        //get requested lock tree created for this transaction
         RequestedLockTree requestedLockTree = requestedLockTreeMap.get(transaction.getTransactionId());
 
         //find the element in requested lock tree that corresponds to database name
         //retrieve the pointer to database element in lock tree map
         LockTreeDatabaseElement databaseElement = (LockTreeDatabaseElement) requestedLockTree.getRequestedDatabaseElement(databaseName).getLockTreeElement();
 
+        //list of new granted lock requests after degrading the lock
         LinkedList<LockRequest> grantedLockRequests;
 
         //degrade database element
