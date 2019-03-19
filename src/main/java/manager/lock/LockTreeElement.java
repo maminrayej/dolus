@@ -1,5 +1,6 @@
 package manager.lock;
 
+import common.Log;
 import manager.lock.LockConstants.LockTypes;
 import manager.transaction.Transaction;
 
@@ -16,6 +17,9 @@ import java.util.Queue;
  * @since 1.0
  */
 public class LockTreeElement {
+
+
+    private final String componentName = "LockTreeElement";
 
     /**
      * List of transactions which their request to access this element is granted
@@ -226,6 +230,26 @@ public class LockTreeElement {
 
             //request is not granted
             return false;
+        }
+    }
+
+    public void degradeLock(Transaction transaction, int degradedLockType) {
+
+        LockRequest lockRequest = grantedMap.get(transaction.getTransactionId());
+
+        int currentLockType = lockRequest.getAppliedLock().getType();
+
+        if (lockRequest == null)
+            return;
+
+        if (currentLockType <= degradedLockType) {
+            Log.log(String.format("Transaction: %s wants to degrade %d to %d. Not Permitted",transaction.getTransactionId(), currentLockType, degradedLockType),componentName,Log.WARNING);
+        }
+        else {
+            lockRequest.getAppliedLock().setType(degradedLockType);
+
+            //TODO -> performance optimization -> not every degrading needs sorting the granted list
+            grantedList.sort(new LockRequestComparator());
         }
     }
 
