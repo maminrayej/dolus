@@ -6,6 +6,9 @@ import common.Log;
 import manager.lock.LockConstants.LockLevels;
 import manager.lock.LockConstants.LockTypes;
 import manager.transaction.Transaction;
+import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.SimpleDirectedGraph;
+
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -39,6 +42,18 @@ public class LockManager {
     private HashMap<String, RequestedLockTree> requestedLockTreeMap;
 
     /**
+     * Directed graph that represents the relationships between transactions and resources(lock tree elements)
+     * basically is used for cycle detection -> dead lock
+     */
+    private SimpleDirectedGraph<GraphNode, DefaultEdge> waitingGraph;
+
+    /**
+     * Dead lock detection will be done in another thread
+     * so a lock is required for accessing the waiting graph
+     */
+    private ReentrantLock graphLock;
+
+    /**
      * Default constructor
      *
      * @since 1.0
@@ -48,6 +63,10 @@ public class LockManager {
         lockTree = new HashMap<>();
 
         requestedLockTreeMap = new HashMap<>();
+
+        waitingGraph = new SimpleDirectedGraph<>(DefaultEdge.class);
+
+        graphLock = new ReentrantLock();
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -97,9 +116,12 @@ public class LockManager {
         //get requested lock tree registered for this transaction
         RequestedLockTree requestedLockTree = requestedLockTreeMap.get(transactionId);
 
-        //if there is no requested lock tree registered for this transaction -> register one!
-        if (requestedLockTree == null)
+        //if this is the first time this transaction is requesting a lock
+        //create a requestedLockTree for that transaction
+        //create a vertex for that transaction in waiting graph
+        if (requestedLockTree == null) {
             requestedLockTreeMap.put(transactionId, new RequestedLockTree());
+        }
 
         //get name of the database to be locked
         String database = lock.getDatabase();
