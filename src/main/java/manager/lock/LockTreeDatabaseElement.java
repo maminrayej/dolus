@@ -21,8 +21,8 @@ public class LockTreeDatabaseElement extends LockTreeElement {
      *
      * @since 1.0
      */
-    public LockTreeDatabaseElement() {
-
+    public LockTreeDatabaseElement(String name) {
+        super(name);
         this.tableElements = new HashMap<>();
     }
 
@@ -48,6 +48,16 @@ public class LockTreeDatabaseElement extends LockTreeElement {
     public void putTableElement(String tableName, LockTreeTableElement tableElement) {
 
         tableElements.put(tableName, tableElement);
+    }
+
+    /**
+     * Remove table element specified by its unique name in lock tree
+     *
+     * @param name name of the element to be removed
+     * @since 1.0
+     */
+    public void removeTableElement(String name) {
+        tableElements.remove(name);
     }
 
 }

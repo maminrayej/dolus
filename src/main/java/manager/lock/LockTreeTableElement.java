@@ -21,8 +21,9 @@ public class LockTreeTableElement extends LockTreeElement {
      *
      * @since 1.0
      */
-    public LockTreeTableElement() {
+    public LockTreeTableElement(String name) {
 
+        super(name);
         this.recordElements = new HashMap<>();
     }
 
@@ -48,5 +49,15 @@ public class LockTreeTableElement extends LockTreeElement {
     public void putRecordElement(Integer recordId, LockTreeElement recordElement) {
 
         recordElements.put(recordId, recordElement);
+    }
+
+    /**
+     * Remove record element specified by its unique name in lock tree
+     *
+     * @param name name of the element to be removed
+     * @since 1.0
+     */
+    public void removeRecordElement(String name) {
+        recordElements.remove(name);
     }
 }
