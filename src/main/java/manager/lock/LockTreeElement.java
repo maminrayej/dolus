@@ -122,54 +122,14 @@ public class LockTreeElement {
         else
             currentActiveLockType = grantedList.get(0).getAppliedLock().getType();
 
-        //list of transactions that are granted now because of the released lock
-        LinkedList<LockRequest> grantedTransactions = new LinkedList<>();
+        //list of lock requests that are granted now because of the released lock
+        LinkedList<LockRequest> grantedLockRequests;
 
-        //flag to see if we should sort the granted list after the loop or not
-        boolean isGrantedListChanged = false;
-
-        //loop through transactions in waiting queue and grant each one that is compatible with the current active lock type
-        for (int i = 0; i < waitingQueue.size(); i++) {
-
-            //get first element in the waiting queue
-            LockRequest waitingRequest = waitingQueue.peek();
-
-            //check whether the requested lock by waiting element is compatible with current active lock type
-            boolean isCompatible = checkCompatibility(waitingRequest.getAppliedLock());
-
-            //if requested lock type by waiting element is compatible with current active lock type
-            if (isCompatible) {
-
-                //granted list must be sorted after loop ends
-                isGrantedListChanged = true;
-
-                //remove the element from waiting queue
-                waitingQueue.remove();
-
-                //remove the waiting request from waiting map
-                waitingMap.remove(waitingRequest.getTransaction().getTransactionId());
-
-                //add element to granted list
-                grantedList.add(waitingRequest);
-
-                //add element to granted map
-                grantedMap.put(waitingRequest.getTransaction().getTransactionId(), waitingRequest);
-
-                //add the transaction to the granted transactions list to inform lock manager
-                grantedTransactions.addFirst(waitingRequest);
-
-                //update current active lock type of this element
-                //this helps us to update the active lock type without having to sort the granted list every time a transaction is granted
-                //locks with more restrictions are numbered lower, so if lock type of the new granted element is lower than current active lock type,
-                //then current active lock type must be updated
-                if (waitingRequest.getAppliedLock().getType() < currentActiveLockType)
-                    currentActiveLockType = waitingRequest.getAppliedLock().getType();
-            } else// element add the head of queue can not be granted
-                break;
-        }
+        //get list of requests that are granted because of the released lock
+        grantedLockRequests = getGrantedLockRequests();
 
         //if granted list is changed, it must be sorted
-        if (isGrantedListChanged)
+        if (grantedLockRequests.size() != 0)
             grantedList.sort(new LockRequestComparator());
 
         //check whether there is any requested or granted lock on this element
@@ -180,7 +140,7 @@ public class LockTreeElement {
             return null;//inform the lock manager to remove this element from lock tree
         }
 
-        return grantedTransactions;
+        return grantedLockRequests;
     }
 
     /**
@@ -240,18 +200,17 @@ public class LockTreeElement {
      * @param degradedLockType lock type the transaction wants its request to be degraded to
      * @since 1.0
      */
-    public void degradeLock(Transaction transaction, int degradedLockType) {
+    public LinkedList<LockRequest> degradeLock(Transaction transaction, int degradedLockType) {
 
         //get lock request of the transaction on this element
         LockRequest lockRequest = grantedMap.get(transaction.getTransactionId());
 
         //if there is no granted lock request from this transaction then ignore the request
         if (lockRequest == null)
-            return;
+            return null;
 
         //get current type of the lock request
         int currentLockType = lockRequest.getAppliedLock().getType();
-
 
         //if current lock type less restrict than the degraded lock type: then request is not permitted
         if (currentLockType <= degradedLockType) {
@@ -266,9 +225,69 @@ public class LockTreeElement {
 
             //update the current active lock type
             currentActiveLockType = grantedList.get(0).getAppliedLock().getType();
+
+            //get new granted lock requests because of degrading the lock
+            LinkedList<LockRequest> grantedLockRequests = getGrantedLockRequests();
+
+            //if granted list is changed, it must be sorted
+            if (grantedLockRequests.size() != 0)
+                grantedList.sort(new LockRequestComparator());
+
+            return grantedLockRequests;
         }
+
+        return null;
     }
 
+    /**
+     * Updates granted and waiting queue and returns new granted lock requests
+     *
+     * @return new granted lock requests
+     */
+    private LinkedList<LockRequest> getGrantedLockRequests() {
+
+        //list of lock requests that are granted now because of the released lock
+        LinkedList<LockRequest> grantedRequestedLocks = new LinkedList<>();
+
+        //loop through transactions in waiting queue and grant each one that is compatible with the current active lock type
+        for (int i = 0; i < waitingQueue.size(); i++) {
+
+            //get first element in the waiting queue
+            LockRequest waitingRequest = waitingQueue.peek();
+
+            //check whether the requested lock by waiting element is compatible with current active lock type
+            boolean isCompatible = checkCompatibility(waitingRequest.getAppliedLock());
+
+            //if requested lock type by waiting element is compatible with current active lock type
+            if (isCompatible) {
+
+                //remove the element from waiting queue
+                waitingQueue.remove();
+
+                //remove the waiting request from waiting map
+                waitingMap.remove(waitingRequest.getTransaction().getTransactionId());
+
+                //add element to granted list
+                grantedList.add(waitingRequest);
+
+                //add element to granted map
+                grantedMap.put(waitingRequest.getTransaction().getTransactionId(), waitingRequest);
+
+                //add the transaction to the granted transactions list to inform lock manager
+                grantedRequestedLocks.addFirst(waitingRequest);
+
+                //update current active lock type of this element
+                //this helps us to update the active lock type without having to sort the granted list every time a transaction is granted
+                //locks with more restrictions are numbered lower, so if lock type of the new granted element is lower than current active lock type,
+                //then current active lock type must be updated
+                if (waitingRequest.getAppliedLock().getType() < currentActiveLockType)
+                    currentActiveLockType = waitingRequest.getAppliedLock().getType();
+            } else// element add the head of queue can not be granted
+                break;
+        }
+
+        return grantedRequestedLocks;
+    }
     /**
      * Checks compatibility between current active lock type and lock type of the argument
      *
