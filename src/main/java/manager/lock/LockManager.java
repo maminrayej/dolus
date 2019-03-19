@@ -61,10 +61,10 @@ public class LockManager {
         Transaction transaction2 = new Transaction("2");
 
         Thread thread1 = new Thread(() -> {
-            lockManager.lock(transaction1, new Lock("database1","table1", LockTypes.EXCLUSIVE));
-            lockManager.lock(transaction1, new Lock("database1","table1",1, LockTypes.EXCLUSIVE));
+            lockManager.lock(transaction1, new Lock("database1", "table1", LockTypes.EXCLUSIVE));
+            lockManager.lock(transaction1, new Lock("database1", "table1", 1, LockTypes.EXCLUSIVE));
 
-            lockManager.lock(transaction2, new Lock("database1","table1", LockTypes.EXCLUSIVE));
+            lockManager.lock(transaction2, new Lock("database1", "table1", LockTypes.EXCLUSIVE));
         });
 
         thread1.start();
@@ -447,16 +447,53 @@ public class LockManager {
     }
 
     /**
+     * Degrades a lock type into a less strict one
+     *
+     * @param transaction transaction that requested the degrading
+     * @param lock        original lock
+     * @param lockType    lock type the transaction wants its request to be degraded to
+     */
+    public synchronized void degradeLock(Transaction transaction, Lock lock, int lockType) {
+
+        //get database name
+        String databaseName = lock.getDatabase();
+
+        //get table name
+        String tableName = lock.getTable();
+
+        //get requested requested lock tree created for this transaction
+        RequestedLockTree requestedLockTree = requestedLockTreeMap.get(transaction.getTransactionId());
+
+        //find the element in requested lock tree that corresponds to database name
+        //retrieve the pointer to database element in lock tree map
+        LockTreeDatabaseElement databaseElement = (LockTreeDatabaseElement) requestedLockTree.getRequestedDatabaseElement(databaseName).getLockTreeElement();
+
+        //degrade database element
+        if (databaseName != null && tableName == null) {
+
+            //degrade its lock type
+            databaseElement.degradeLock(transaction, lockType);
+        } else { //degrade table element
+
+            //get table element specified by table name
+            LockTreeElement tableElement = databaseElement.getTableElement(tableName);
+
+            //degrade its lock
+            tableElement.degradeLock(transaction, lockType);
+        }
+    }
+
+    /**
      * Adds granted transactions to the first available queue
      *
-     * @param firstQueueLock lock on first queue
+     * @param firstQueueLock  lock on first queue
      * @param secondQueueLock lock on second queue
-     * @param firstQueue first queue
-     * @param secondQueue second queue
+     * @param firstQueue      first queue
+     * @param secondQueue     second queue
      * @param grantedRequests list of granted transactions
      */
     private void addToQueue(ReentrantLock firstQueueLock, ReentrantLock secondQueueLock,
-                            Queue<LockRequest> firstQueue , Queue<LockRequest> secondQueue,
+                            Queue<LockRequest> firstQueue, Queue<LockRequest> secondQueue,
                             LinkedList<LockRequest> grantedRequests) {
 
         //if there is no granted transaction then there is no element to add! -> return
