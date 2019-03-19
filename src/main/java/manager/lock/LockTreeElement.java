@@ -21,6 +21,9 @@ public class LockTreeElement {
 
     private final String componentName = "LockTreeElement";
 
+    //unique name of the element in lock tree
+    public String name;
+
     /**
      * List of transactions which their request to access this element is granted
      */
@@ -56,7 +59,9 @@ public class LockTreeElement {
      *
      * @since 1.0
      */
-    public LockTreeElement() {
+    public LockTreeElement(String name) {
+
+        this.name = name;
 
         this.grantedList = new LinkedList<>();
 
@@ -347,5 +352,15 @@ public class LockTreeElement {
 
         }
         return false;
+    }
+
+    /**
+     * Get name of the element
+     *
+     * @return name of the element in lock tree
+     * @since 1.0
+     */
+    public String getName() {
+        return name;
     }
 }
