@@ -111,4 +111,26 @@ public class RequestedLockTree {
     public LinkedList<RequestedLockTreeElement> getRequestedLockTree() {
         return this.databases;
     }
+
+    /**
+     * get requested database element specified by database name
+     *
+     * @param databaseName name of the database to retrieve
+     * @return retrieved requested database lock element
+     * @since 1.0
+     */
+    public RequestedLockTreeElement getRequestedDatabaseElement(String databaseName) {
+        return this.databaseMap.get(databaseName);
+    }
+
+    /**
+     * get requested table element specified by table name
+     *
+     * @param tableName name of the table to retrieve
+     * @return retrieved requested table lock element
+     * @since 1.0
+     */
+    public RequestedLockTreeElement getRequestedTableElement(String tableName) {
+        return this.tableMap.get(tableName);
+    }
 }
