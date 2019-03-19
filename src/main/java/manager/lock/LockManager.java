@@ -7,7 +7,6 @@ import manager.lock.LockConstants.LockLevels;
 import manager.lock.LockConstants.LockTypes;
 import manager.transaction.Transaction;
 
-import javax.swing.text.html.ObjectView;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -72,7 +71,6 @@ public class LockManager {
 
             lockManager.unlock(transaction1);
 
-            lockManager.unlock(transaction2);
         });
 
         thread1.start();
@@ -318,7 +316,7 @@ public class LockManager {
         if (recordElement == null) {
 
             //create a new record element
-            recordElement = new LockTreeElement(recordId+"");
+            recordElement = new LockTreeElement(recordId + "");
 
             //add created record element to its table
             tableElement.putRecordElement(recordId, recordElement);
