@@ -52,27 +52,25 @@ public class LockManager {
 
     public static void main(String[] args) throws InterruptedException {
 
+        //TODO implement degrade method
+        //TODO implement cycle detection using jgrapht
+
         LockManager lockManager = new LockManager();
 
         Transaction transaction1 = new Transaction("1");
         Transaction transaction2 = new Transaction("2");
 
         Thread thread1 = new Thread(() -> {
+            lockManager.lock(transaction1, new Lock("database1","table1", LockTypes.EXCLUSIVE));
+            lockManager.lock(transaction1, new Lock("database1","table1",1, LockTypes.EXCLUSIVE));
 
-            lockManager.lock(transaction1, new Lock("database1", LockTypes.UPDATE));
-            lockManager.lock(transaction2, new Lock("database1", LockTypes.UPDATE));
-
-            try {
-                Thread.sleep(1000);
-                lockManager.unlock(transaction1);
-                lockManager.unlock(transaction2);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            lockManager.lock(transaction2, new Lock("database1","table1", LockTypes.EXCLUSIVE));
         });
 
         thread1.start();
         thread1.join();
+
+        System.out.println("Done");
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println(gson.toJson(lockManager));
@@ -246,7 +244,7 @@ public class LockManager {
         Lock databaseAppliedLock = new Lock(databaseName, parentLockType);
 
         //first try to lock the database with appropriate lock
-        boolean databaseLevelGranted = manageDatabaseLevelLock(transaction, originalLock, databaseAppliedLock, databaseName);
+        boolean databaseLevelGranted = manageDatabaseLevelLock(transaction, databaseAppliedLock, originalLock, databaseName);
 
         if (!databaseLevelGranted) {
             return false;
@@ -412,26 +410,26 @@ public class LockManager {
                     LockTreeElement lockTreeElement = requestedRecordElement.getLockTreeElement();
 
                     //release the lock held by the transaction and get list of new granted transactions
-                    LinkedList<LockRequest> grantedTransactions = lockTreeElement.releaseLock(transactionId);
+                    LinkedList<LockRequest> grantedRequests = lockTreeElement.releaseLock(transactionId);
 
                     //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
-                    addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedTransactions);
+                    addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedRequests);
                 }
 
                 //now that every lock held on records of table element by the transaction is released,
                 //we can release the lock on table itself
-                LinkedList<LockRequest> grantedTransactions = requestedTableElement.getLockTreeElement().releaseLock(transactionId);
+                LinkedList<LockRequest> grantedRequests = requestedTableElement.getLockTreeElement().releaseLock(transactionId);
 
                 //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
-                addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedTransactions);
+                addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedRequests);
             }
 
             //now that every lock held on tables of database element by the transaction is released,
             //we can release the lock on database itself
-            LinkedList<LockRequest> grantedTransactions = requestedDatabaseElement.getLockTreeElement().releaseLock(transactionId);
+            LinkedList<LockRequest> grantedRequests = requestedDatabaseElement.getLockTreeElement().releaseLock(transactionId);
 
             //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
-            addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedTransactions);
+            addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedRequests);
         }
 
         callBackRunnable.exit();
@@ -455,14 +453,14 @@ public class LockManager {
      * @param secondQueueLock lock on second queue
      * @param firstQueue first queue
      * @param secondQueue second queue
-     * @param grantedTransactions list of granted transactions
+     * @param grantedRequests list of granted transactions
      */
     private void addToQueue(ReentrantLock firstQueueLock, ReentrantLock secondQueueLock,
                             Queue<LockRequest> firstQueue , Queue<LockRequest> secondQueue,
-                            LinkedList<LockRequest> grantedTransactions) {
+                            LinkedList<LockRequest> grantedRequests) {
 
         //if there is no granted transaction then there is no element to add! -> return
-        if (grantedTransactions == null)
+        if (grantedRequests == null)
             return;
 
         //add granted transactions to the shared memory with call back thread
@@ -471,14 +469,14 @@ public class LockManager {
         if (firstQueueLock.tryLock()) {
 
             //add all transactions to the first queue
-            firstQueue.addAll(grantedTransactions);
+            firstQueue.addAll(grantedRequests);
 
             //unlock the first queue
             firstQueueLock.unlock();
         } else if (secondQueueLock.tryLock()) {
 
             //add all transactions to the second queue
-            secondQueue.addAll(grantedTransactions);
+            secondQueue.addAll(grantedRequests);
 
             //unlock the second queue
             secondQueueLock.unlock();
