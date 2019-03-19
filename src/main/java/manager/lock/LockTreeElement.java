@@ -213,7 +213,7 @@ public class LockTreeElement {
         int currentLockType = lockRequest.getAppliedLock().getType();
 
         //if current lock type less restrict than the degraded lock type: then request is not permitted
-        if (currentLockType <= degradedLockType) {
+        if (degradedLockType <= currentLockType) {
             Log.log(String.format("Transaction: %s wants to degrade %d to %d. Not Permitted",transaction.getTransactionId(), currentLockType, degradedLockType),componentName,Log.WARNING);
         }
         else {

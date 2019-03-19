@@ -62,15 +62,15 @@ public class LockManager {
 
         Thread thread1 = new Thread(() -> {
             lockManager.lock(transaction1, new Lock("database1", "table1", LockTypes.EXCLUSIVE));
-            lockManager.lock(transaction1, new Lock("database1", "table1", 1, LockTypes.EXCLUSIVE));
 
-            lockManager.lock(transaction2, new Lock("database1", "table1", LockTypes.EXCLUSIVE));
+
+            lockManager.lock(transaction2, new Lock("database1", "table1", LockTypes.UPDATE));
+
+            lockManager.degradeLock(transaction1, new Lock("database1", "table1", LockTypes.EXCLUSIVE), LockTypes.INTENT_SHARED);
         });
 
         thread1.start();
         thread1.join();
-
-        System.out.println("Done");
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println(gson.toJson(lockManager));
@@ -468,19 +468,43 @@ public class LockManager {
         //retrieve the pointer to database element in lock tree map
         LockTreeDatabaseElement databaseElement = (LockTreeDatabaseElement) requestedLockTree.getRequestedDatabaseElement(databaseName).getLockTreeElement();
 
+        LinkedList<LockRequest> grantedLockRequests;
+
         //degrade database element
         if (databaseName != null && tableName == null) {
 
             //degrade its lock type
-            databaseElement.degradeLock(transaction, lockType);
+            grantedLockRequests = databaseElement.degradeLock(transaction, lockType);
         } else { //degrade table element
 
             //get table element specified by table name
             LockTreeElement tableElement = databaseElement.getTableElement(tableName);
 
             //degrade its lock
-            tableElement.degradeLock(transaction, lockType);
+            grantedLockRequests = tableElement.degradeLock(transaction, lockType);
         }
+
+        //create shared queues
+        Queue<LockRequest> firstQueue = new LinkedList<>();
+        Queue<LockRequest> secondQueue = new LinkedList<>();
+
+        //create locks for queues
+        ReentrantLock firstQueueLock = new ReentrantLock();
+        ReentrantLock secondQueueLock = new ReentrantLock();
+
+        //create an instance of the callback runnable
+        CallBackRunnable callBackRunnable = new CallBackRunnable(firstQueue, secondQueue, firstQueueLock, secondQueueLock);
+
+        //assign a thread to the call back runnable
+        Thread callBackThread = new Thread(callBackRunnable);
+
+        //start the call back thread
+        callBackThread.start();
+
+        addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedLockRequests);
+
+        callBackRunnable.exit();
+
     }
 
     /**
