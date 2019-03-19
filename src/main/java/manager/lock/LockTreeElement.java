@@ -233,15 +233,27 @@ public class LockTreeElement {
         }
     }
 
+    /**
+     * Degrades a lock type into a less strict one
+     *
+     * @param transaction transaction that requested the degrading
+     * @param degradedLockType lock type the transaction wants its request to be degraded to
+     * @since 1.0
+     */
     public void degradeLock(Transaction transaction, int degradedLockType) {
 
+        //get lock request of the transaction on this element
         LockRequest lockRequest = grantedMap.get(transaction.getTransactionId());
 
-        int currentLockType = lockRequest.getAppliedLock().getType();
-
+        //if there is no granted lock request from this transaction then ignore the request
         if (lockRequest == null)
             return;
 
+        //get current type of the lock request
+        int currentLockType = lockRequest.getAppliedLock().getType();
+
+
+        //if current lock type less restrict than the degraded lock type: then request is not permitted
         if (currentLockType <= degradedLockType) {
             Log.log(String.format("Transaction: %s wants to degrade %d to %d. Not Permitted",transaction.getTransactionId(), currentLockType, degradedLockType),componentName,Log.WARNING);
         }
@@ -249,7 +261,11 @@ public class LockTreeElement {
             lockRequest.getAppliedLock().setType(degradedLockType);
 
             //TODO -> performance optimization -> not every degrading needs sorting the granted list
+            //sort the granted list
             grantedList.sort(new LockRequestComparator());
+
+            //update the current active lock type
+            currentActiveLockType = grantedList.get(0).getAppliedLock().getType();
         }
     }
 
