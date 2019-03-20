@@ -34,24 +34,27 @@ public class LockManager {
      * A Map between database name -> database element.
      * this is the root pointer in lock tree
      */
-    private HashMap<String, LockTreeDatabaseElement> lockTree;
+    private final HashMap<String, LockTreeDatabaseElement> lockTree;
 
     /**
      * Mapping between a transaction and its requested locks
      */
-    private HashMap<String, RequestedLockTree> requestedLockTreeMap;
+    private final HashMap<String, RequestedLockTree> requestedLockTreeMap;
 
     /**
      * Directed graph that represents the relationships between transactions and resources(lock tree elements)
      * basically is used for cycle detection -> dead lock
      */
-    private SimpleDirectedGraph<GraphNode, DefaultEdge> waitingGraph;
+    private final SimpleDirectedGraph<GraphNode, DefaultEdge> waitingGraph;
 
     /**
      * Dead lock detection will be done in another thread
      * so a lock is required for accessing the waiting graph
      */
-    private ReentrantLock graphLock;
+    private final ReentrantLock graphLock;
+
+
+    private final HashMap<String,GraphNode> graphNodeMap;
 
     /**
      * Default constructor
@@ -67,6 +70,8 @@ public class LockManager {
         waitingGraph = new SimpleDirectedGraph<>(DefaultEdge.class);
 
         graphLock = new ReentrantLock();
+
+        graphNodeMap = new HashMap<>();
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -85,10 +90,6 @@ public class LockManager {
 
 
             lockManager.lock(transaction2, new Lock("database1", "table1", LockTypes.UPDATE));
-
-            lockManager.degradeLock(transaction1, new Lock("database1", "table1", LockTypes.EXCLUSIVE), LockTypes.UPDATE);
-
-            lockManager.unlock(transaction1);
 
         });
 
@@ -120,7 +121,18 @@ public class LockManager {
         //create a requestedLockTree for that transaction
         //create a vertex for that transaction in waiting graph
         if (requestedLockTree == null) {
+
             requestedLockTreeMap.put(transactionId, new RequestedLockTree());
+
+            //create a graph node for this new transaction
+            GraphNode graphNode = new GraphNode(transaction, GraphNode.TRANSACTION_NODE);
+
+            //add this new created node as a vertex to waiting graph
+            waitingGraph.addVertex(graphNode);
+
+            //add this new created node to node map so that can be retrieved later
+            graphNodeMap.put(transactionId, graphNode);
+
         }
 
         //get name of the database to be locked
@@ -142,18 +154,21 @@ public class LockManager {
         //shows if requested lock is granted immediately or not
         boolean granted = false;
 
+        //get graph node related to the transaction in waiting graph
+        GraphNode transactionNode = graphNodeMap.get(transactionId);
+
         //according to the lock level, call its appropriate manager
         if (lockLevel == LockLevels.DATABASE_LOCK) {
 
-            granted = manageDatabaseLevelLock(transaction, lock, lock, database);
+            granted = manageDatabaseLevelLock(transactionNode, transaction, lock, lock, database);
 
         } else if (lockLevel == LockLevels.TABLE_LOCK) {
 
-            granted = manageTableLevelLock(transaction, lock, lock, database, table);
+            granted = manageTableLevelLock(transactionNode, transaction, lock, lock, database, table);
 
         } else if (lockLevel == LockLevels.RECORD_LOCK) {
 
-            granted = manageRecordLevelLock(transaction, lock, database, table, record);
+            granted = manageRecordLevelLock(transactionNode, transaction, lock, database, table, record);
         }
 
         return granted;
@@ -214,7 +229,7 @@ public class LockManager {
      * @return true if request is granted and false otherwise
      * @since 1.0
      */
-    private boolean manageDatabaseLevelLock(Transaction transaction, Lock originalLock, Lock appliedLock, String databaseName) {
+    private boolean manageDatabaseLevelLock(GraphNode transactionNode, Transaction transaction, Lock originalLock, Lock appliedLock, String databaseName) {
 
         //get database element with name specified by database variable
         LockTreeDatabaseElement databaseElement = this.lockTree.get(databaseName);
@@ -237,11 +252,19 @@ public class LockManager {
             //add this database element to requested lock tree of the transaction
             this.requestedLockTreeMap.get(transactionId).addDatabaseLock(databaseName, databaseElement);
 
+            //add a relationship (edge) between resource and transaction node in waiting graph
+            addNewResourceRelationshipToWaitingGraph(databaseElement, transactionNode);
+
             //lock is granted
             return true;
         }
 
         boolean granted = databaseElement.acquireLock(transaction, originalLock, appliedLock);
+
+        //add a conditional relationship (edge) between transaction and resource node in waiting graph
+        //if granted is true the relationship is  : ( resource ) ---> ( transaction )
+        //if granted is false the relationship is : ( transaction ) ---> ( resource )
+        addConditionalResourceRelationshipToWaitingGraph(databaseElement, transactionNode, granted);
 
         String transactionId = transaction.getTransactionId();
 
@@ -261,7 +284,7 @@ public class LockManager {
      * @return true if request is granted and false otherwise
      * @since 1.0
      */
-    private boolean manageTableLevelLock(Transaction transaction, Lock originalLock, Lock appliedLock, String databaseName, String tableName) {
+    private boolean manageTableLevelLock(GraphNode transactionNode, Transaction transaction, Lock originalLock, Lock appliedLock, String databaseName, String tableName) {
 
         //get appropriate lock type for database that contains the tableName
         int parentLockType = getAppropriateParentLockType(appliedLock);
@@ -270,7 +293,7 @@ public class LockManager {
         Lock databaseAppliedLock = new Lock(databaseName, parentLockType);
 
         //first try to lock the database with appropriate lock
-        boolean databaseLevelGranted = manageDatabaseLevelLock(transaction, databaseAppliedLock, originalLock, databaseName);
+        boolean databaseLevelGranted = manageDatabaseLevelLock(transactionNode, transaction, databaseAppliedLock, originalLock, databaseName);
 
         if (!databaseLevelGranted) {
             return false;
@@ -300,16 +323,28 @@ public class LockManager {
             //get requested lock tree registered for this transaction
             this.requestedLockTreeMap.get(transactionId).addTableLock(databaseName, tableName, tableElement);
 
+            //add a relationship (edge) between resource and transaction node in waiting graph
+            addNewResourceRelationshipToWaitingGraph(tableElement, transactionNode);
+
             //lock is granted
             return true;
         }
 
+        //try to acquire the lock on this table element
         boolean granted = tableElement.acquireLock(transaction, originalLock, appliedLock);
 
+        //add a conditional relationship (edge) between transaction and resource node in waiting graph
+        //if granted is true the relationship is  : ( resource ) ---> ( transaction )
+        //if granted is false the relationship is : ( transaction ) ---> ( resource )
+        addConditionalResourceRelationshipToWaitingGraph(tableElement, transactionNode, granted);
+
+        //get transaction Id
         String transactionId = transaction.getTransactionId();
 
+        //get requested lock tree of this transaction and add the requested table lock to its tree
         this.requestedLockTreeMap.get(transactionId).addTableLock(databaseName, tableName, tableElement);
 
+        //return the result of the request
         return granted;
     }
 
@@ -323,7 +358,7 @@ public class LockManager {
      * @param recordId     id of the record to be locked
      * @return true if request is granted and false otherwise
      */
-    private boolean manageRecordLevelLock(Transaction transaction, Lock lock, String databaseName, String tableName, Integer recordId) {
+    private boolean manageRecordLevelLock(GraphNode transactionNode, Transaction transaction, Lock lock, String databaseName, String tableName, Integer recordId) {
 
         //get database element that contains the table which contains requested record
         LockTreeDatabaseElement databaseElement = lockTree.get(databaseName);
@@ -352,11 +387,15 @@ public class LockManager {
             //get requested lock tree for this transaction and add this record to its tree
             requestedLockTreeMap.get(transactionId).addRecordLock(tableName, recordElement);
 
+            addNewResourceRelationshipToWaitingGraph(recordElement, transactionNode);
+
             //lock is granted
             return true;
         }
 
         boolean granted = recordElement.acquireLock(transaction, lock, lock);
+
+        addConditionalResourceRelationshipToWaitingGraph(recordElement, transactionNode, granted);
 
         String transactionId = transaction.getTransactionId();
 
@@ -603,5 +642,90 @@ public class LockManager {
             secondQueueLock.unlock();
         }
     }
+
+    /**
+     * Adds a new vertex to waiting graph
+     *
+     * @param node vertex to add to waiting graph
+     * @since 1.0
+     */
+    private void addVertexToWaitingGraph(GraphNode node) {
+
+        //synchronize on waiting graph object
+        //it is shared with dead lock detection thread
+        synchronized (waitingGraph) {
+            waitingGraph.addVertex(node);
+        }
+    }
+
+    /**
+     * Adds a new edge to waiting graph between source and destination vertices
+     *
+     * @param source source vertex
+     * @param destination destination vertex
+     * @since 1.0
+     */
+    private void addEdgeToWaitingGraph(GraphNode source, GraphNode destination) {
+
+        //synchronize on waiting graph object
+        //it is shared with dead lock detection thread
+        synchronized (waitingGraph) {
+            waitingGraph.addEdge(source, destination);
+        }
+    }
+
+    /**
+     * This method is used when a new resource is being created into the lock tree.
+     * method creates a node for the new created resource and relates this resource to
+     * a transaction node like: ( resource ) ---> ( transaction )
+     *
+     * @param lockElement new created lock element
+     * @param transactionNode graph node in waiting graph that represents the transaction
+     * @since 1.0
+     */
+    private void addNewResourceRelationshipToWaitingGraph(LockTreeElement lockElement, GraphNode transactionNode) {
+
+        //create a graph node for the new resource
+        GraphNode resourceNode = new GraphNode(lockElement, GraphNode.RESOURCE_NODE);
+
+        //add new created node as a vertex to waiting graph
+        addVertexToWaitingGraph(resourceNode);
+
+        //add new created node in graph node map to retrieve it fast
+        //TODO record name is not unique!!! fix it
+        graphNodeMap.put(lockElement.getName(), resourceNode);
+
+        //add an edge between transaction node and resource node
+        //because lock request is granted so the source node is resource
+        //and destination node is transaction node
+        // ( resource ) ---> ( transaction )
+        addEdgeToWaitingGraph(resourceNode, transactionNode);
+
+    }
+
+    /**
+     * This method is used when the relationship (edge) between a resource node and a transaction node is conditional.
+     * method retrieves the resource node that corresponds to specified lock element and adds an edge to waiting graph
+     * based on a condition.
+     *
+     * @param lockElement lock element in the lock tree
+     * @param transactionNode graph node that represents the transaction in waiting graph
+     * @param condition condition that determines the direction of the edge
+     * @since 1.0
+     */
+    private void addConditionalResourceRelationshipToWaitingGraph(LockTreeElement lockElement, GraphNode transactionNode, boolean condition) {
+
+        //retrieve graph node that represents requested table in waiting graph
+        GraphNode resourceNode = graphNodeMap.get(lockElement.getName());
+
+        //if lock request is granted: add edge ( resource ) ---> ( transaction )
+        //else add edge ( transaction ) ---> ( resource )
+        if (condition)
+            addEdgeToWaitingGraph(resourceNode, transactionNode);
+        else
+            addEdgeToWaitingGraph(transactionNode, resourceNode);
+    }
+
+
 
 }
