@@ -535,6 +535,9 @@ public class LockManager {
         //delete requested tree lock tree registered for transaction
         this.requestedLockTreeMap.remove(transactionId);
 
+        //delete transaction node from waiting graph
+        deleteVertexFromWaitingGraph(transaction);
+
         //wait for the call back thread to end
         try {
             callBackThread.join();
@@ -734,6 +737,13 @@ public class LockManager {
             addEdgeToWaitingGraph(transactionNode, resourceNode);
     }
 
+    private void deleteVertexFromWaitingGraph(Transaction transaction) {
 
+        synchronized (waitingGraph) {
 
+            GraphNode transactionNode = graphNodeMap.get(transaction.getTransactionId());
+
+            waitingGraph.removeVertex(transactionNode);
+        }
+    }
 }
