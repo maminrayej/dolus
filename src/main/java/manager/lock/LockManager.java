@@ -309,7 +309,7 @@ public class LockManager {
         if (tableElement == null) {
 
             //create a new table element
-            tableElement = new LockTreeTableElement(tableName);
+            tableElement = new LockTreeTableElement(databaseName + "_" + tableName);
 
             //put this table element in database element that contains it
             databaseElement.putTableElement(tableName, tableElement);
@@ -373,7 +373,7 @@ public class LockManager {
         if (recordElement == null) {
 
             //create a new record element
-            recordElement = new LockTreeElement(recordId + "");
+            recordElement = new LockTreeElement(databaseName + "_" + tableName + "_" +recordId);
 
             //add created record element to its table
             tableElement.putRecordElement(recordId, recordElement);
