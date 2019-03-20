@@ -48,12 +48,9 @@ public class LockManager {
     private final SimpleDirectedGraph<GraphNode, DefaultEdge> waitingGraph;
 
     /**
-     * Dead lock detection will be done in another thread
-     * so a lock is required for accessing the waiting graph
+     * Mapping between a graph node id and its graph node object
+     * this data structure is used for retrieving the graph nodes fast
      */
-    private final ReentrantLock graphLock;
-
-
     private final HashMap<String,GraphNode> graphNodeMap;
 
     /**
@@ -68,8 +65,6 @@ public class LockManager {
         requestedLockTreeMap = new HashMap<>();
 
         waitingGraph = new SimpleDirectedGraph<>(DefaultEdge.class);
-
-        graphLock = new ReentrantLock();
 
         graphNodeMap = new HashMap<>();
     }
