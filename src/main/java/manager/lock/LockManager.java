@@ -604,6 +604,14 @@ public class LockManager {
 
         callBackRunnable.exit();
 
+        //wait on the callback thread to end
+        try {
+            callBackThread.join();
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
