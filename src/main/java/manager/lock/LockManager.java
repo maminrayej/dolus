@@ -76,9 +76,7 @@ public class LockManager {
 
     public static void main(String[] args) throws InterruptedException {
 
-        //TODO implement degrade method
         //TODO implement cycle detection using jgrapht
-        //TODO delete unused lock tree elements
 
         LockManager lockManager = new LockManager();
 
@@ -489,10 +487,16 @@ public class LockManager {
 
                         //remove record resource node from waiting graph
                         removeResourceVertexFromWaitingGraph(recordElement);
+
+                        continue;
                     }
 
                     //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
                     addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedRequests);
+
+                    //update waiting graph relationships (edges)
+                    //change ( transaction ) ---> ( resource ) to ( resource ) ---> ( transaction )
+                    updateWaitingGraph(grantedRequests);
                 }
 
                 //now that every lock held on records of table element by the transaction is released,
@@ -511,10 +515,16 @@ public class LockManager {
 
                     //remove table resource node from waiting graph
                     removeResourceVertexFromWaitingGraph(tableElement);
+
+                    continue;
                 }
 
                 //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
                 addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedRequests);
+
+                //update waiting graph relationships (edges)
+                //change ( transaction ) ---> ( resource ) to ( resource ) ---> ( transaction )
+                updateWaitingGraph(grantedRequests);
             }
 
             //now that every lock held on tables of database element by the transaction is released,
@@ -533,10 +543,15 @@ public class LockManager {
                 //remove database resource node from waiting graph
                 removeResourceVertexFromWaitingGraph(databaseElement);
 
+                continue;
             }
 
             //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
             addToQueue(firstQueueLock, secondQueueLock, firstQueue, secondQueue, grantedRequests);
+
+            //update waiting graph relationships (edges)
+            //change ( transaction ) ---> ( resource ) to ( resource ) ---> ( transaction )
+            updateWaitingGraph(grantedRequests);
         }
 
         callBackRunnable.exit();
@@ -594,6 +609,10 @@ public class LockManager {
             //degrade its lock
             grantedLockRequests = tableElement.degradeLock(transaction, lockType);
         }
+
+        //update waiting graph relationships (edges)
+        //change ( transaction ) ---> ( resource ) to ( resource ) ---> ( transaction )
+        updateWaitingGraph(grantedLockRequests);
 
         //create shared queues
         Queue<LockRequest> firstQueue = new LinkedList<>();
@@ -712,7 +731,6 @@ public class LockManager {
         addVertexToWaitingGraph(resourceNode);
 
         //add new created node in graph node map to retrieve it fast
-        //TODO record name is not unique!!! fix it
         graphNodeMap.put(lockElement.getName(), resourceNode);
 
         //add an edge between transaction node and resource node
@@ -764,5 +782,42 @@ public class LockManager {
 
             waitingGraph.removeVertex(resourceNode);
         }
+    }
+
+    private void updateWaitingGraph(LinkedList<LockRequest> grantedRequests) {
+
+        synchronized (waitingGraph) {
+
+            for (LockRequest grantedRequest : grantedRequests) {
+
+                String resourceName = getResourceName(grantedRequest.getAppliedLock());
+
+                GraphNode resourceNode = graphNodeMap.get(resourceName);
+
+                GraphNode transactionNode = graphNodeMap.get(grantedRequest.getTransaction().getTransactionId());
+
+                waitingGraph.removeEdge(transactionNode, resourceNode);
+
+                waitingGraph.addEdge(resourceNode, transactionNode);
+            }
+        }
+    }
+
+    private String getResourceName(Lock lock) {
+
+        int lockLevel = getLockLevel(lock);
+
+        String databaseName = lock.getDatabase();
+        String tableName    = lock.getTable();
+        Integer recordId    = lock.getRecord();
+
+        if (lockLevel == LockLevels.DATABASE_LOCK)
+            return databaseName;
+        else if (lockLevel == LockLevels.TABLE_LOCK)
+            return databaseName + "_" + tableName;
+        else if (lockLevel == LockLevels.RECORD_LOCK)
+            return databaseName + "_" + tableName + "_" + recordId;
+        else
+            return null;
     }
 }
