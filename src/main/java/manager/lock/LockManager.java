@@ -486,6 +486,9 @@ public class LockManager {
                         LockTreeElement recordElement = requestedRecordElement.getLockTreeElement();
 
                         tableElement.removeRecordElement(recordElement.getName());
+
+                        //remove record resource node from waiting graph
+                        removeResourceVertexFromWaitingGraph(recordElement);
                     }
 
                     //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
@@ -505,6 +508,9 @@ public class LockManager {
                     LockTreeElement tableElement = requestedTableElement.getLockTreeElement();
 
                     databaseElement.removeTableElement(tableElement.getName());
+
+                    //remove table resource node from waiting graph
+                    removeResourceVertexFromWaitingGraph(tableElement);
                 }
 
                 //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
@@ -524,6 +530,9 @@ public class LockManager {
 
                 lockTree.remove(databaseElement.getName());
 
+                //remove database resource node from waiting graph
+                removeResourceVertexFromWaitingGraph(databaseElement);
+
             }
 
             //add granted transactions to shared queues so call back thread can inform transactions of their granted locks
@@ -536,7 +545,7 @@ public class LockManager {
         this.requestedLockTreeMap.remove(transactionId);
 
         //delete transaction node from waiting graph
-        deleteVertexFromWaitingGraph(transaction);
+        removeTransactionVertexFromWaitingGraph(transaction);
 
         //wait for the call back thread to end
         try {
@@ -737,13 +746,23 @@ public class LockManager {
             addEdgeToWaitingGraph(transactionNode, resourceNode);
     }
 
-    private void deleteVertexFromWaitingGraph(Transaction transaction) {
+    private void removeTransactionVertexFromWaitingGraph(Transaction transaction) {
 
         synchronized (waitingGraph) {
 
             GraphNode transactionNode = graphNodeMap.get(transaction.getTransactionId());
 
             waitingGraph.removeVertex(transactionNode);
+        }
+    }
+
+    private void removeResourceVertexFromWaitingGraph(LockTreeElement lockElement) {
+
+        synchronized (waitingGraph) {
+
+            GraphNode resourceNode = graphNodeMap.get(lockElement.getName());
+
+            waitingGraph.removeVertex(resourceNode);
         }
     }
 }
