@@ -1,13 +1,10 @@
 package manager.lock;
 
 import org.jgrapht.alg.cycle.CycleDetector;
-import org.jgrapht.generate.GnmRandomBipartiteGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.SimpleDirectedGraph;
 
-import java.util.HashMap;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * This class is responsible for periodically traversing the waiting graph and detecting cycles in it.
@@ -36,6 +33,8 @@ public class DeadLockDetectorRunnable implements Runnable {
     @Override
     public void run() {
 
+        System.out.println("Dead lock detection is running");
+
         CycleDetector<GraphNode, DefaultEdge> cycleDetector = new CycleDetector<>(waitingGraph);
 
         while (true) {
@@ -45,13 +44,13 @@ public class DeadLockDetectorRunnable implements Runnable {
 
                 if (involveNodes.size() != 0) {
                     //TODO inform transaction manager of this cycle
+                    System.out.println("Dead lock detected");
                 }
             }
 
             try {
                 Thread.sleep(period);
-            }
-            catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }

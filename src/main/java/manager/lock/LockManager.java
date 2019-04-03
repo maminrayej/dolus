@@ -67,11 +67,14 @@ public class LockManager {
         waitingGraph = new SimpleDirectedGraph<>(DefaultEdge.class);
 
         graphNodeMap = new HashMap<>();
+
+        final DeadLockDetectorRunnable deadLockDetectorRunnable = new DeadLockDetectorRunnable(waitingGraph, 1000);
+
+        //start dead lock detector thread
+        new Thread( deadLockDetectorRunnable ).start();
     }
 
     public static void main(String[] args) throws InterruptedException {
-
-        //TODO implement cycle detection using jgrapht
 
         LockManager lockManager = new LockManager();
 
@@ -80,9 +83,12 @@ public class LockManager {
 
         Thread thread1 = new Thread(() -> {
             lockManager.lock(transaction1, new Lock("database1", "table1", LockTypes.EXCLUSIVE));
+            lockManager.lock(transaction2, new Lock("database1", "table1", LockTypes.EXCLUSIVE));
+
+            lockManager.lock(transaction2, new Lock("database1", "table2", LockTypes.EXCLUSIVE));
+            lockManager.lock(transaction1, new Lock("database1", "table2", LockTypes.EXCLUSIVE));
 
 
-            lockManager.lock(transaction2, new Lock("database1", "table1", LockTypes.UPDATE));
 
         });
 
@@ -759,47 +765,87 @@ public class LockManager {
             addEdgeToWaitingGraph(transactionNode, resourceNode);
     }
 
+    /**
+     * Removes a transaction node from waiting graph
+     *
+     * @param transaction transaction object
+     * @since 1.0
+     */
     private void removeTransactionVertexFromWaitingGraph(Transaction transaction) {
 
+        //synchronize with deadlock detector thread
         synchronized (waitingGraph) {
 
+            //get graph node representing the given transaction
             GraphNode transactionNode = graphNodeMap.get(transaction.getTransactionId());
 
+            //remove transaction vertex from waiting graph
             waitingGraph.removeVertex(transactionNode);
         }
     }
 
+    /**
+     * Removes a resource node from waiting graph
+     *
+     * @param lockElement element in the lock tree
+     * @since 1.0
+     */
     private void removeResourceVertexFromWaitingGraph(LockTreeElement lockElement) {
 
+        //synchronize with deadlock detector thread
         synchronized (waitingGraph) {
 
+            //get graph node representing the given resource
             GraphNode resourceNode = graphNodeMap.get(lockElement.getName());
 
+            //remove resource vertex from waiting graph
             waitingGraph.removeVertex(resourceNode);
         }
     }
 
+    /**
+     * Update the waiting graph based on the new granted lock requests
+     *
+     * @param grantedRequests list of granted requests
+     * @since 1.0
+     */
     private void updateWaitingGraph(LinkedList<LockRequest> grantedRequests) {
 
+        //synchronize with deadlock detector thread
         synchronized (waitingGraph) {
 
+            //for every granted lock request : change the direction of edge between resource and transaction
+            // ( transaction ) --> ( resource ) to ( transaction ) <-- ( resource )
             for (LockRequest grantedRequest : grantedRequests) {
 
+                //get requested lock and generate its resource name
                 String resourceName = getResourceName(grantedRequest.getAppliedLock());
 
+                //get resource node in waiting graph
                 GraphNode resourceNode = graphNodeMap.get(resourceName);
 
+                //get transaction node in waiting graph
                 GraphNode transactionNode = graphNodeMap.get(grantedRequest.getTransaction().getTransactionId());
 
+                //remove ( transaction ) --> ( resource )
                 waitingGraph.removeEdge(transactionNode, resourceNode);
 
+                //add ( transaction ) <-- ( resource )
                 waitingGraph.addEdge(resourceNode, transactionNode);
             }
         }
     }
 
+    /**
+     * Generates the resource name that the lock is requested upon
+     *
+     * @param lock requested lock on the resource
+     * @return name of the resource
+     * @since 1.0
+     */
     private String getResourceName(Lock lock) {
 
+        //get level of the lock
         int lockLevel = getLockLevel(lock);
 
         String databaseName = lock.getDatabase();
