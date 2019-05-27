@@ -148,4 +148,20 @@ public class Lock {
     public void setType(int type) {
         this.type = type;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+
+        if (database != null) {
+            buffer.append(database);
+        }
+        if (table != null) {
+            buffer.append("_").append(table);
+        }
+        if (record != null)
+            buffer.append("_").append(record);
+
+        return buffer.toString();
+    }
 }

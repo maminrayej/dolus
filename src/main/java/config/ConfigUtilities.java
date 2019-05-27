@@ -302,4 +302,43 @@ public class ConfigUtilities {
         return null;
     }
 
+    public static StorageConfigContainer findStorage(String collectionName) {
+
+        //make sure storage config is loaded successfully
+        if (!storageConfigLoaded) {
+            Log.log("Storage graph is not configured yet. Can not search for collections", componentName, Log.ERROR);
+            return null;
+        }
+
+        /*
+         * search all storage systems for the specified collection and attribute using BFS.
+         * this method uses BFS because dolus search among top level storage systems first.
+         * if there is a storage that contains the collection name, only its sub tree will be searched to find the storage containing attribute
+         * it means there can not be two storage systems with same collection name unless they are in a sub tree
+         * for example:
+         *      mysql1(table1, table2) ----> mongo1(table3,table4) ----> mysql2(table4,table5)
+         *      /  \                                                            |
+         *    ...  ...                                                         ...
+         *
+         *    if we search for table4, mongo1 will be found and mysql2 will be deleted from the queue.
+         */
+
+        //add top level storage systems to queue
+        Queue<StorageConfigContainer> queue = new LinkedList<>(storageConfigContainerList);
+
+        //search the storage graph using BFS
+        while (!queue.isEmpty()) {
+
+            StorageConfigContainer current = queue.remove();
+
+            //if current storage contains collection search for attribute in its sub tree
+            if (current.containsCollection(collectionName)) {
+                return current;
+            } else
+                queue.addAll(current.getChildren());
+        }
+
+        return null;
+    }
+
 }

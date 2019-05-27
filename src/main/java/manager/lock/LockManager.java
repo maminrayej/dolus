@@ -74,31 +74,40 @@ public class LockManager {
         new Thread( deadLockDetectorRunnable ).start();
     }
 
-    public static void main(String[] args) throws InterruptedException {
-
-        LockManager lockManager = new LockManager();
-
-        Transaction transaction1 = new Transaction("1");
-        Transaction transaction2 = new Transaction("2");
-
-        Thread thread1 = new Thread(() -> {
-            lockManager.lock(transaction1, new Lock("database1", "table1", LockTypes.EXCLUSIVE));
-            lockManager.lock(transaction2, new Lock("database1", "table1", LockTypes.EXCLUSIVE));
-
-            lockManager.lock(transaction2, new Lock("database1", "table2", LockTypes.EXCLUSIVE));
-            lockManager.lock(transaction1, new Lock("database1", "table2", LockTypes.EXCLUSIVE));
-
-
-
-        });
-
-        thread1.start();
-        thread1.join();
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        System.out.println(gson.toJson(lockManager));
-
-    }
+//    public static void main(String[] args) throws InterruptedException {
+//
+//        LockManager lockManager = new LockManager();
+//
+//        Transaction transaction1 = new Transaction("1");
+//        Transaction transaction2 = new Transaction("2");
+//
+//        Thread thread1 = new Thread(() -> {
+//            lockManager.lock(transaction1, new Lock("database1", "table1", LockTypes.EXCLUSIVE));
+//            lockManager.lock(transaction2, new Lock("database1", "table1", LockTypes.EXCLUSIVE));
+//
+//            lockManager.lock(transaction2, new Lock("database1", "table2", LockTypes.EXCLUSIVE));
+//            lockManager.lock(transaction1, new Lock("database1", "table2", LockTypes.EXCLUSIVE));
+//
+//            try {
+//                Thread.sleep(2000);
+//            }
+//            catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//
+//            lockManager.unlock(transaction1);
+//
+//
+//
+//        });
+//
+//        thread1.start();
+//        thread1.join();
+//
+////        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+////        System.out.println(gson.toJson(lockManager));
+//
+//    }
 
     /**
      * Interface for transactions to acquire locks

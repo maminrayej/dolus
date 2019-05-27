@@ -1,7 +1,7 @@
 {
   "storage"  : [
     {
-      "id"      : "mysqldb",
+      "id"      : "mysql",
       "type"    : "mysql",
       "engine"  : "apache_drill",
       "host"    : "localhost",
@@ -45,7 +45,7 @@
     ,
     {
       "id"          : "mongo",
-      "parent"      : "mysqldb",
+      "parent"      : "mysql",
       "type"        : "mongodb",
       "engine"      : "apache_drill",
       "host"        : "loaclhost",
@@ -56,17 +56,17 @@
       "collections" : [
         {
           "name"    : "sailors",
-          "pk"      : "_id"
+          "pk"      : "sid"
         }
         ,
         {
           "name"    : "reserves",
-          "pk"      : "_id"
+          "pk"      : "rid"
         }
         ,
         {
           "name"    : "boats",
-          "pk"      : "_id"
+          "pk"      : "bid"
         }
       ]
     }
